@@ -68,7 +68,6 @@ power_speed = WIDTH * (3 / 320)
 power_x = random.randint(0, WIDTH - power_size)
 power_y = 0
 power_falling = False
-power_score = -2  # More negative score for pineapple
 
 # Player's properties
 player_img = pygame.image.load('graphics/player.png')
