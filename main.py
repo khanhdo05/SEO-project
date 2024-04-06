@@ -6,10 +6,15 @@ import random
 from sys import exit
 pygame.init()
 
-# Game Window
+# Define Constants
 WIDTH = 1600
 HEIGHT = WIDTH * 0.75
-TITLE = "Catch Me If You Can"
+MID_X = WIDTH / 2
+MID_Y = WIDTH / 2
+GROUND = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
+TITLE = "Name of our game"
+
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
 
@@ -74,7 +79,7 @@ player_img = pygame.image.load('graphics/player.png')
 player_size = WIDTH // 10
 player_img = pygame.transform.scale(player_img, (player_size, player_size))
 player_x = WIDTH // 2                 # middle
-player_y = HEIGHT - player_size - (WIDTH * (83/800)) # ground
+player_y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # ground
 player_speed = player_size
 
 # Other
