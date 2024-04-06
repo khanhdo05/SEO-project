@@ -14,6 +14,29 @@ MID_Y = WIDTH / 2
 GROUND = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 TITLE = "Name of our game"
 
+# GameEntity as Parent Class
+class GameEntity(pygame.sprite.Sprite):
+    def __init__(self, image_path, position, scale_size, size, speed):
+        super().__init__()
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image = pygame.transform.scale(self.image, scale_size)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = position
+        self.size = size
+        self.speed = speed
+
+    def move_left(self):
+        self.rect.x -= self.speed
+
+    def move_right(self):
+        self.rect.x += self.speed
+
+    def fall_down(self):
+        self.rect.y -= self.speed
+        
+    def draw(self, screen, img):
+        screen.blit(img, (self.x, self.y))
+
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
