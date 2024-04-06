@@ -100,6 +100,10 @@ class LoadAssets:
         image = pygame.image.load(image_path)
         image = pygame.transform.scale(welcome_img, scale_size)
         return image
+    
+    @staticmethod
+    def load_fonts(font_path, font_size):
+        font = pygame.font.Font(font_path, int(font_size))
 
 welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
 instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
@@ -165,12 +169,12 @@ score = 0
 heart = 3
 
 # Font
-game_over_font = pygame.font.Font('font/Pixelify_Sans/static/PixelifySans-Bold.ttf', int(WIDTH / 8))
-pixel_font = pygame.font.Font('font/VT323/VT323-Regular.ttf', int(WIDTH * (11 / 80)))
-pixel_small_font = pygame.font.Font('font/VT323/VT323-Regular.ttf', int(WIDTH * (17 / 160)))
-pixel_smaller_font = pygame.font.Font('font/VT323/VT323-Regular.ttf', int(WIDTH * (9 / 160)))
-regular_font = pygame.font.Font('font/Roboto/Roboto-Medium.ttf', int(WIDTH / 16))
-regular_small_font = pygame.font.Font('font/Roboto/Roboto-Medium.ttf', int(WIDTH * (7 / 160)))
+game_over_font = LoadAssets.load_fonts('font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+pixel_font = LoadAssets.load_fonts('font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
+pixel_small_font = LoadAssets.load_fonts('font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
+pixel_smaller_font = LoadAssets.load_fonts('font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
+regular_font = LoadAssets.load_fonts('font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_small_font = LoadAssets.load_fonts('font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 
 # Load the music file
 background_music = pygame.mixer.music.load('audio/background_music.mp3')
