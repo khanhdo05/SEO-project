@@ -15,7 +15,7 @@ MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 HEART_COUNT = 3 # Player starts off with 3 hearts
-POINTS_COUNT = 0 # Total number of points player earns
+SCORE = 0 # Total number of points player earns
 
 # Type of item enum
 class ItemType(Enum):
@@ -89,13 +89,12 @@ class Item(GameEntity):
     
     def update_score(self):
         '''Update score based on item type'''
-        global POINTS_COUNT
         if self.type == ItemType.GOOD:
-            POINTS_COUNT += 1
+            SCORE += 1
         elif self.type == ItemType.BAD:
-            POINTS_COUNT -= 1
+            SCORE -= 1
         elif self.type == ItemType.BONUS:
-            POINTS_COUNT += 5
+            SCORE += 5
             
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
@@ -122,6 +121,7 @@ class LoadAssets:
     def play_sound(sound):
         sound.play()
 
+# Loads images
 welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
 instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
 background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
@@ -129,9 +129,29 @@ game_over_background = LoadAssets.load_img('assets/graphics/game_over_background
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
 # Heart Image
-heart_img = pygame.image.load('assets/graphics/heart.png')
-heart_img = pygame.transform.scale(heart_img, (WIDTH*0.05, WIDTH*0.05))
-heart_big_img = pygame.transform.scale(heart_img, (WIDTH*0.08125, WIDTH*0.08125))
+heart_img_path = 'assets/graphics/heart.png'
+heart_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.05, WIDTH*0.05))
+heart_big_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.08125, WIDTH*0.08125))
+
+# Font
+game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
+pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
+pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
+regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+
+# Load the music file
+game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
+lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
+earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
+boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+LoadAssets.load_songs('assets/audio/background_music.mp3')
+pygame.mixer.music.play(-1)  # Play in an infinite loop
+
+# Set the volume (0.0 to 1.0, where 0.0 is silent and 1.0 is full volume)
+volume_level = 0.3  # Adjust this value to set the desired volume level
+pygame.mixer.music.set_volume(volume_level)
 
 # Falling object's properties
 
@@ -182,28 +202,6 @@ player_speed = player_size
 
 # Other
 clock = pygame.time.Clock()
-score = 0
-heart = 3
-
-# Font
-game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
-pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
-pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
-pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
-regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
-
-# Load the music file
-game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
-lose_p_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
-earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
-boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
-LoadAssets.load_songs('assets/audio/background_music.mp3')
-pygame.mixer.music.play(-1)  # Play in an infinite loop
-
-# Set the volume (0.0 to 1.0, where 0.0 is silent and 1.0 is full volume)
-volume_level = 0.3  # Adjust this value to set the desired volume level
-pygame.mixer.music.set_volume(volume_level)
 
 
 # States
@@ -274,13 +272,13 @@ while current_state == PLAY_STATE:
     if is_paused == False:
         object_y += object_speed
         if object_y >= HEIGHT - player_size:
-            heart -= 1
+            HEART_COUNT -= 1
             object_y = 0
             object_x = random.randint(0, WIDTH - object_size)  
             object_speed += WIDTH // 800
     
     # Randomly drop foul1
-    if (score >= 20) and random.randint(0, 8000) == 0 and not foul1_falling:
+    if (SCORE >= 20) and random.randint(0, 8000) == 0 and not foul1_falling:
         foul1_falling = True
         foul1_x = random.randint(0, WIDTH - foul1_size)
 
@@ -293,7 +291,7 @@ while current_state == PLAY_STATE:
             foul1_x = random.randint(0, WIDTH - foul1_size)
 
     # Randomly drop foul2
-    if (score >= 25) and random.randint(0, 8000) == 0 and not foul2_falling:
+    if (SCORE >= 25) and random.randint(0, 8000) == 0 and not foul2_falling:
         foul2_falling = True
         foul2_x = random.randint(0, WIDTH - foul2_size)
 
@@ -306,7 +304,7 @@ while current_state == PLAY_STATE:
             foul2_x = random.randint(0, WIDTH - foul2_size)
     
     # Randomly drop power
-    if (score % 5 == 0) and (score >= 10) and random.randint(0, 8000) == 0 and not power_falling:
+    if (SCORE % 5 == 0) and (SCORE >= 10) and random.randint(0, 8000) == 0 and not power_falling:
         power_falling = True
         power_x = random.randint(0, WIDTH - power_size)
 
@@ -320,30 +318,30 @@ while current_state == PLAY_STATE:
     
     # Collision Check
     if player_y + (WIDTH * (83 / 800)) < object_y + object_size and object_x < player_x + player_size and player_x < object_x + object_size:
-        score += 1
-        play_earn_sound()
+        SCORE += 1
+        LoadAssets.play_sound(earn_sound)
         object_y = 0
         object_x = random.randint(0, WIDTH - object_size)  
         object_speed += 1
 
     # Collision Check for Foul1
     if player_y + (WIDTH * (83 / 800)) < foul1_y + foul1_size and foul1_x < player_x + player_size and player_x < foul1_x + foul1_size:
-        score += foul1_score
-        play_lose_sound()
+        SCORE += foul1_score
+        LoadAssets.play_sound(lose_sound)
         foul1_falling = False
         foul1_y = 0
 
     # Collision Check for Foul2
     if player_y + (WIDTH * (83 / 800)) < foul2_y + foul2_size and foul2_x < player_x + player_size and player_x < foul2_x + foul2_size:
-        score += foul2_score
-        play_lose_sound()
+        SCORE += foul2_score
+        LoadAssets.play_sound(lose_sound)
         foul2_falling = False
         foul2_y = 0
 
     # Collision Check for Power
     if player_y + (WIDTH * (83 / 800)) < power_y + power_size and power_x < player_x + player_size and player_x < power_x + power_size:
         player_speed += WIDTH // 320
-        play_boost_sound()
+        LoadAssets.play_sound(boost_sound)
         power_falling = False
         power_y = 0
 
@@ -356,17 +354,17 @@ while current_state == PLAY_STATE:
     # Text
     if is_paused == False:
         screen.blit(heart_img, (WIDTH - (WIDTH / 8), WIDTH * (11 / 320)))
-        text = regular_font.render("Score: " + str(score), True, (0, 0, 0))
+        text = regular_font.render("Score: " + str(SCORE), True, (0, 0, 0))
         screen.blit(text, (70, 30))
-        heart_count = regular_font.render(":"+ str(heart), True, (0, 0, 0))
+        heart_count = regular_font.render(":"+ str(HEART_COUNT), True, (0, 0, 0))
         screen.blit(heart_count, (WIDTH - (WIDTH * (23 / 320)), WIDTH * (19 / 800)))
     else:
         text_paused = regular_font.render("Paused. Press Space to Resume", True, (0, 0, 0))
         screen.blit(text_paused, (WIDTH / 2 - (WIDTH / 2.2), HEIGHT / 2.5))
 
     # Lose!
-    if heart == 0:
-        play_go_sound()
+    if HEART_COUNT == 0:
+        LoadAssets.play_sound(game_over_sound)
         current_state = GAME_OVER_STATE
 
     # Drawing
@@ -425,7 +423,7 @@ while current_state == HEHE:
     press_to_quit = pixel_font.render("YAYYYYYY?", True, (252, 43, 113))
     dear = pixel_small_font.render("TO:____", True, (251, 194, 7))
     happy = pixel_smaller_font.render("Happy birthday lol lol lol lol True, (251, 194, 7))
-    score_final = pixel_smaller_font.render("X" + str(score), True, (252, 43, 113))
+    score_final = pixel_smaller_font.render("X" + str(SCORE), True, (252, 43, 113))
     screen.blit(game_over_background, (0, 0))
     screen.blit(game_over_text, (WIDTH / 2 - (WIDTH * (3 / 8)), HEIGHT / 2 - (WIDTH / 8)))
     screen.blit(press_to_quit, (WIDTH / 2 - (WIDTH * (21 / 80)), HEIGHT / 2))
