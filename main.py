@@ -205,12 +205,11 @@ clock = pygame.time.Clock()
 
 
 # States
-class GameStates(Enum):
-    WELCOME_STATE = 0
-    INSTRUCTION_STATE = 1
-    PLAY_STATE = 2
-    GAME_OVER_STATE = 3
-    HEHE = 4
+WELCOME_STATE = 0
+INSTRUCTION_STATE = 1
+PLAY_STATE = 2
+GAME_OVER_STATE = 3
+HEHE = 4
 
 # Initial state
 current_state = WELCOME_STATE
@@ -390,12 +389,7 @@ while current_state == GAME_OVER_STATE:
             exit()
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
-                reset_game()
                 current_state = PLAY_STATE
-            elif event.key == pygame.K_l:
-                current_state = HEHE
-                pygame.mixer.music.stop()
-                play_hehe_sound()
 
     screen.blit(game_over_screen, (0, 0))
     over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
@@ -453,12 +447,10 @@ class Game:
             self.state = GameplayState(self)
 
     def run(self):
-        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
         clock = pygame.time.Clock()
 
-        player = Player('player.png', (SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
-        enemies = [Enemy('enemy.png', (100, 100), 2)]
-        items = [Item('item.png', (200, 200), 'heal')]
+        # Initialize objects here (player, good_item, bad_item, bonus_item, etc)
 
         while self.running:
             events = pygame.event.get()
