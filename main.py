@@ -46,10 +46,20 @@ class Player(GameEntity):
       
     def update(self, keys):
         '''Handles player's movement'''
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] and self.rect.x > 0: # Check left boundary
             self.move_horizontally(-self.speed)
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
             self.move_horizontally(self.speed)
+
+# Item as Child Class of GameEntity
+class Item(GameEntity):
+    def __init__(self, image_path, position, scale_size, score_update, falling):
+        super().__init__(image_path, position, scale_size)
+        self.size = WIDTH // 12
+        self.speed = self.size    
+        self.score_update = score_update
+        self.falling = falling # True or False
+        
         
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
