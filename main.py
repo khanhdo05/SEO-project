@@ -25,14 +25,8 @@ class GameEntity(pygame.sprite.Sprite):
         self.size = size
         self.speed = speed
 
-    def move_left(self):
-        self.rect.x -= self.speed
-
-    def move_right(self):
-        self.rect.x += self.speed
-
-    def fall_down(self):
-        self.rect.y -= self.speed
+    def update(self):
+        pass # To be overriden
         
     def draw(self, screen, img):
         screen.blit(img, (self.x, self.y))
