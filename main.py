@@ -3,7 +3,7 @@
 # Libraries Initialization
 import pygame
 import random
-from enum import Enum
+# from enum import Enum
 from sys import exit
 pygame.init()
 
@@ -16,12 +16,6 @@ MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 HEART_COUNT = 3 # Player starts off with 3 hearts
 SCORE = 0 # Total number of points player earns
-
-# Type of item enum
-class ItemType(Enum):
-    GOOD = "Good" 
-    BAD = "Bad"
-    BONUS = "Bonus"
 
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -89,15 +83,12 @@ class Item(GameEntity):
     
     def update_score(self):
         '''Update score based on item type'''
-        if self.type == ItemType.GOOD:
+        if self.type == "Good":
             SCORE += 1
-        elif self.type == ItemType.BAD:
-            SCORE -= 1
-        elif self.type == ItemType.BONUS:
+        elif self.type == "Bad":
+            HEART_COUNT -= 1
+        elif self.type == "Bonus":
             SCORE += 5
-            
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption(TITLE)
 
 # Load assets
 class LoadAssets:
@@ -209,7 +200,6 @@ WELCOME_STATE = 0
 INSTRUCTION_STATE = 1
 PLAY_STATE = 2
 GAME_OVER_STATE = 3
-HEHE = 4
 
 # Initial state
 current_state = WELCOME_STATE
@@ -418,15 +408,15 @@ class GameState:
 
 class MainMenuState(GameState):
     def render(self, screen):
-        screen.fill((0, 0, 0))  # Clear screen
-        # Render main menu
+        screen.blit(welcome_img, (0, 0))
 
 class GameplayState(GameState):
     def update(self):
+        pass
         # Update game logic
 
     def render(self, screen):
-        # Render gameplay
+        screen.blit(background_img, (0, 0))
 
 class PauseState(GameState):
     def handle_events(self, events):
@@ -448,9 +438,36 @@ class Game:
 
     def run(self):
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        clock = pygame.time.Clock()
+        pygame.display.set_caption(TITLE)
 
         # Initialize objects here (player, good_item, bad_item, bonus_item, etc)
+        player = Player((MID_X, GROUND_Y),          # position
+                        (WIDTH // 10, WIDTH // 10), # scale_size
+                        WIDTH // 10)                # speed
+        good_item1 = Item("Good", 'assets/graphics/coin.png',          # image_path
+                          (random.randint(0, WIDTH - WIDTH // 12), 0), # position
+                          (WIDTH // 12, WIDTH // 12),                  # scale_size
+                          WIDTH * (3 / 400))                           # speed
+        good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
+                          (random.randint(0, WIDTH - object_size), 0), 
+                          (WIDTH // 12, WIDTH // 12), 
+                          WIDTH * (3 / 400))
+        bonus_item2 = Item("Bonus", 'assets/graphics/pineapple.png', 
+                          (random.randint(0, WIDTH - object_size), 0), 
+                          (WIDTH // 12, WIDTH // 12), 
+                          WIDTH * (3 / 400))
+        bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
+                          (random.randint(0, WIDTH - object_size), 0), 
+                          (WIDTH // 12, WIDTH // 12), 
+                          WIDTH * (3 / 400))
+        bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
+                          (random.randint(0, WIDTH - object_size), 0), 
+                          (WIDTH // 12, WIDTH // 12), 
+                          WIDTH * (3 / 400))
+        bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
+                          (random.randint(0, WIDTH - object_size), 0), 
+                          (WIDTH // 12, WIDTH // 12), 
+                          WIDTH * (3 / 400))
 
         while self.running:
             events = pygame.event.get()
