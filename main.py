@@ -372,22 +372,8 @@ while current_state == PLAY_STATE:
 pygame.mixer.music.stop()
 
 # Game Over Screen
-while current_state == GAME_OVER_STATE:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                current_state = PLAY_STATE
+while running == True:
 
-    screen.blit(game_over_screen, (0, 0))
-    over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
-    screen.blit(over_text, (WIDTH / 2 - (WIDTH * (5 / 16)), HEIGHT / 2 - (WIDTH / 8)))
-    play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
-    screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
-    next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
-    screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
 
     pygame.display.flip()
     clock.tick(30)
@@ -410,13 +396,34 @@ class MainMenuState(GameState):
     def render(self, screen):
         screen.blit(welcome_img, (0, 0))
 
-class GameplayState(GameState):
+class GamePlayState(GameState):
     def update(self):
-        pass
-        # Update game logic
+        # Drawing
+        
+        # Losing Logic
+        if HEART_COUNT == 0:
+            LoadAssets.play_sound(game_over_sound)
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
+        
+class GameOverState(GameState):
+    def update(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    running = False
+    def render(self, screen):
+        screen.blit(game_over_screen, (0, 0))
+        over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
+        screen.blit(over_text, (WIDTH / 2 - (WIDTH * (5 / 16)), HEIGHT / 2 - (WIDTH / 8)))
+        play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
+        screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
+        next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
+        screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
 
 class PauseState(GameState):
     def handle_events(self, events):
@@ -431,10 +438,10 @@ class Game:
         self.state = MainMenuState(self)
 
     def toggle_pause(self):
-        if isinstance(self.state, GameplayState):
+        if isinstance(self.state, GamePlayState):
             self.state = PauseState(self)
         elif isinstance(self.state, PauseState):
-            self.state = GameplayState(self)
+            self.state = GamePlayState(self)
 
     def run(self):
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -449,25 +456,27 @@ class Game:
                           (WIDTH // 12, WIDTH // 12),                  # scale_size
                           WIDTH * (3 / 400))                           # speed
         good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
-                          (random.randint(0, WIDTH - object_size), 0), 
+                          (random.randint(0, WIDTH - WIDTH // 12), 0), 
                           (WIDTH // 12, WIDTH // 12), 
                           WIDTH * (3 / 400))
         bonus_item2 = Item("Bonus", 'assets/graphics/pineapple.png', 
-                          (random.randint(0, WIDTH - object_size), 0), 
+                          (random.randint(0, WIDTH - WIDTH // 12), 0), 
                           (WIDTH // 12, WIDTH // 12), 
                           WIDTH * (3 / 400))
         bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
-                          (random.randint(0, WIDTH - object_size), 0), 
+                          (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                          (WIDTH // 12, WIDTH // 12), 
+                          WIDTH * (3 / 400))
+        bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
+                          (random.randint(0, WIDTH - WIDTH // 12), 0), 
                           (WIDTH // 12, WIDTH // 12), 
                           WIDTH * (3 / 400))
         bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
                           (random.randint(0, WIDTH - object_size), 0), 
                           (WIDTH // 12, WIDTH // 12), 
                           WIDTH * (3 / 400))
-        bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
-                          (random.randint(0, WIDTH - object_size), 0), 
-                          (WIDTH // 12, WIDTH // 12), 
-                          WIDTH * (3 / 400))
+        
+        game.state = GamePlayState(game, player, good_item1, good_item2, bonus_item2, bad_item1, bad_item2)
 
         while self.running:
             events = pygame.event.get()
@@ -480,7 +489,7 @@ class Game:
             self.state.render(screen)
 
             pygame.display.flip()
-            clock.tick(60)
+            clock.tick(30)
 
         pygame.quit()
 
