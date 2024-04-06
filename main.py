@@ -16,13 +16,18 @@ TITLE = "Name of our game"
 
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
-    def __init__(self, image_path, position, scale_size, size, speed):
+    def __init__(self, image_path, position, scale_size, speed):
+        ''' Notes:
+            + image_path should follow the form: "assets/graphics/FILE_NAME.png"
+            + position: (x,y) to place the image on the screen
+            + scale_size: (x,y) as desired width and height of the image
+            + speed: a number that references the width in scale_size
+        '''
         super().__init__()
         self.image = pygame.image.load(image_path).convert_alpha()
         self.image = pygame.transform.scale(self.image, scale_size)
         self.rect = self.image.get_rect()
         self.rect.topleft = position
-        self.size = size
         self.speed = speed
 
     def move_horizontally(self):
@@ -36,8 +41,8 @@ class GameEntity(pygame.sprite.Sprite):
 
 # Player as Child Class of GameEntity
 class Player(GameEntity):
-    def __init__(self, position, scale_size, size, speed):
-        super().__init__('graphics/player.png', position, scale_size, size, speed)
+    def __init__(self, position, scale_size, speed):
+        super().__init__("assets/graphics/player.png", position, scale_size, speed)
       
     def update(self, keys):
         '''Handles player's movement'''
