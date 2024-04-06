@@ -31,7 +31,17 @@ class GameEntity(pygame.sprite.Sprite):
     def draw(self, screen, img):
         screen.blit(img, (self.x, self.y))
 
+# Player as Child Class of GameEntity
+class Player(GameEntity):
+    def __init__(self, position, scale_size, size, speed):
+        super().__init__('graphics/player.png', position, scale_size, size, speed)
 
+    def move_left(self):
+        self.rect.x -= self.speed
+
+    def move_right(self):
+        self.rect.x += self.speed
+        
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
 
