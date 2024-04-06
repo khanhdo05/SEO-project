@@ -18,7 +18,7 @@ HEART_COUNT = 3 # Player starts off with 3 hearts
 POINTS_COUNT = 0 # Total number of points player earns
 
 # Type of item enum
-class Type(Enum):
+class ItemType(Enum):
     GOOD = "Good" 
     BAD = "Bad"
     BONUS = "Bonus"
@@ -88,7 +88,14 @@ class Item(GameEntity):
         self.rect.x = random.randint(0, WIDTH - self.rect.width)
     
     def update_score(self):
-        if self.type == Type.GOOD
+        '''Update score based on item type'''
+        global POINTS_COUNT
+        if self.type == ItemType.GOOD:
+            POINTS_COUNT += 1
+        elif self.type == ItemType.BAD:
+            POINTS_COUNT -= 1
+        elif self.type == ItemType.BONUS:
+            POINTS_COUNT += 5
             
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
@@ -97,13 +104,23 @@ pygame.display.set_caption(TITLE)
 class LoadAssets:
     @staticmethod
     def load_img(image_path, scale_size):
-        image = pygame.image.load(image_path)
-        image = pygame.transform.scale(welcome_img, scale_size)
-        return image
+        return pygame.transform.scale(pygame.image.load(image_path), scale_size)
     
     @staticmethod
     def load_fonts(font_path, font_size):
-        font = pygame.font.Font(font_path, int(font_size))
+        return pygame.font.Font(font_path, int(font_size))
+    
+    @staticmethod
+    def load_songs(sound_path):
+        return pygame.mixer.music.load(sound_path)
+    
+    @staticmethod
+    def load_sound_effects(sound_path):
+        return pygame.mixer.Sound(sound_path)
+    
+    @staticmethod
+    def play_sound(sound):
+        sound.play()
 
 welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
 instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
@@ -169,71 +186,33 @@ score = 0
 heart = 3
 
 # Font
-game_over_font = LoadAssets.load_fonts('font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
-pixel_font = LoadAssets.load_fonts('font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
-pixel_small_font = LoadAssets.load_fonts('font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
-pixel_smaller_font = LoadAssets.load_fonts('font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
-regular_small_font = LoadAssets.load_fonts('font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
+pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
+pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
+regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 
 # Load the music file
-background_music = pygame.mixer.music.load('audio/background_music.mp3')
-hehe_music = pygame.mixer.Sound('audio/hehe.mp3')
-game_over_sound = pygame.mixer.Sound('audio/lose.mp3')
-lose_p_sound = pygame.mixer.Sound('audio/lose_p.mp3')
-earn_sound = pygame.mixer.Sound('audio/earn.mp3')
-boost_sound = pygame.mixer.Sound('audio/boost.mp3')
-
-# Play the boost sound:
-def play_boost_sound():
-    boost_sound.play()
-
-# Play the earn sound
-def play_earn_sound():
-    earn_sound.play()
-
-#Play lose point sound
-def play_lose_sound():
-    lose_p_sound.play()
-
-# Play the lose sound when lose
-def play_go_sound():
-    game_over_sound.play()
-
-# Play the sound for hehe screen
-def play_hehe_sound():
-    hehe_music.play()
-
-background_music
+game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
+lose_p_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
+earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
+boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+LoadAssets.load_songs('assets/audio/background_music.mp3')
 pygame.mixer.music.play(-1)  # Play in an infinite loop
 
 # Set the volume (0.0 to 1.0, where 0.0 is silent and 1.0 is full volume)
 volume_level = 0.3  # Adjust this value to set the desired volume level
 pygame.mixer.music.set_volume(volume_level)
 
-def reset_game():
-    global score, heart, object_speed, player_speed, object_y, foul1_falling, foul1_y, foul2_falling, foul2_y, power_falling, power_y
-    score = 0
-    heart = 3
-    object_speed = WIDTH * (3/ 320)
-    player_speed = player_size
-    object_y = 0
-    foul1_falling = False
-    foul1_y = 0
-    foul1_x = random.randint(0, WIDTH - foul1_size)
-    foul2_falling = False
-    foul2_y = 0
-    foul2_x = random.randint(0, WIDTH - foul2_size)
-    power_falling = False
-    power_y = 0
-    power_x = random.randint(0, WIDTH - power_size)
 
 # States
-WELCOME_STATE = 0
-INSTRUCTION_STATE = 1
-PLAY_STATE = 2
-GAME_OVER_STATE = 3
-HEHE = 4
+class GameStates(Enum):
+    WELCOME_STATE = 0
+    INSTRUCTION_STATE = 1
+    PLAY_STATE = 2
+    GAME_OVER_STATE = 3
+    HEHE = 4
 
 # Initial state
 current_state = WELCOME_STATE
