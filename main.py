@@ -144,240 +144,6 @@ pygame.mixer.music.play(-1)  # Play in an infinite loop
 volume_level = 0.3  # Adjust this value to set the desired volume level
 pygame.mixer.music.set_volume(volume_level)
 
-# Falling object's properties
-
-## Main Object
-object_img = pygame.image.load('assets/graphics/coin.png')
-object_size = WIDTH // 12
-object_img = pygame.transform.scale(object_img, (object_size, object_size))
-object_x = random.randint(0, WIDTH - object_size)
-object_y = 0 # top of the screen
-object_speed = WIDTH * (3 / 400)
-
-## Foul Object 1
-foul1_img = pygame.image.load('assets/graphics/object.png')
-foul1_size = WIDTH // 12
-foul1_img = pygame.transform.scale(foul1_img, (foul1_size, foul1_size))
-foul1_speed = WIDTH // 200
-foul1_x = random.randint(0, WIDTH - foul1_size)
-foul1_y = 0
-foul1_falling = False
-foul1_score = -1  # Negative score for strawberry
-
-## Foul Object 2
-foul2_img = pygame.image.load('assets/graphics/pineapple.png')
-foul2_size = WIDTH // 12
-foul2_img = pygame.transform.scale(foul2_img, (foul2_size, foul2_size))
-foul2_speed = WIDTH // 320
-foul2_x = random.randint(0, WIDTH - foul2_size)
-foul2_y = 0
-foul2_falling = False
-foul2_score = -2  # More negative score for pineapple
-
-# Power Up
-power_img = pygame.image.load('assets/graphics/power.png')
-power_size = WIDTH // 15
-power_img = pygame.transform.scale(power_img, (power_size, power_size))
-power_speed = WIDTH * (3 / 320)
-power_x = random.randint(0, WIDTH - power_size)
-power_y = 0
-power_falling = False
-
-# Player's properties
-player_img = pygame.image.load('assets/graphics/player.png')
-player_size = WIDTH // 10
-player_img = pygame.transform.scale(player_img, (player_size, player_size))
-player_x = WIDTH // 2                 # middle
-player_y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # ground
-player_speed = player_size
-
-# Other
-clock = pygame.time.Clock()
-
-
-# States
-WELCOME_STATE = 0
-INSTRUCTION_STATE = 1
-PLAY_STATE = 2
-GAME_OVER_STATE = 3
-
-# Initial state
-current_state = WELCOME_STATE
-
-# Welcome Screen
-while current_state == WELCOME_STATE:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        elif event.type == pygame.KEYDOWN:
-            current_state = INSTRUCTION_STATE
-    screen.blit(welcome_img, (0, 0))
-   
-    pygame.display.flip()
-    clock.tick(30)
-
-# Instruction Screen
-while current_state == INSTRUCTION_STATE:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        elif event.type == pygame.KEYDOWN:
-            current_state = PLAY_STATE
-    screen.blit(instruction_img, (0, 0))
-   
-    pygame.display.flip()
-    clock.tick(30)
-            
-# Main Game Loop
-is_paused = False # Pause Flag
-while current_state == PLAY_STATE:
-
-    for event in pygame.event.get():
-        # Quit action
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        # Game logic when pressed keys
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                pygame.quit()
-                exit()
-            if event.key == pygame.K_SPACE:
-                if is_paused:
-                    is_paused = False
-                else:
-                    is_paused = True
-            if event.key == pygame.K_LEFT:
-                player_x -= player_speed
-            if event.key == pygame.K_RIGHT:
-                player_x += player_speed
-    
-    # Draws a new screen
-    screen.blit(background_img, (0, 0))
-
-    # Update object's position
-    if is_paused == False:
-        object_y += object_speed
-        if object_y >= HEIGHT - player_size:
-            HEART_COUNT -= 1
-            object_y = 0
-            object_x = random.randint(0, WIDTH - object_size)  
-            object_speed += WIDTH // 800
-    
-    # Randomly drop foul1
-    if (SCORE >= 20) and random.randint(0, 8000) == 0 and not foul1_falling:
-        foul1_falling = True
-        foul1_x = random.randint(0, WIDTH - foul1_size)
-
-    # Update foul1's position
-    if is_paused == False:
-        foul1_y += foul1_speed
-        if foul1_y >= HEIGHT - player_size:
-            foul1_falling = False
-            foul1_y = 0
-            foul1_x = random.randint(0, WIDTH - foul1_size)
-
-    # Randomly drop foul2
-    if (SCORE >= 25) and random.randint(0, 8000) == 0 and not foul2_falling:
-        foul2_falling = True
-        foul2_x = random.randint(0, WIDTH - foul2_size)
-
-    # Update foul2's position
-    if is_paused == False:
-        foul2_y += foul2_speed
-        if foul2_y >= HEIGHT - player_size:
-            foul2_falling = False
-            foul2_y = 0
-            foul2_x = random.randint(0, WIDTH - foul2_size)
-    
-    # Randomly drop power
-    if (SCORE % 5 == 0) and (SCORE >= 10) and random.randint(0, 8000) == 0 and not power_falling:
-        power_falling = True
-        power_x = random.randint(0, WIDTH - power_size)
-
-    # Update power's position
-    if is_paused == False:
-        power_y += power_speed
-        if power_y >= HEIGHT - player_size:
-            power_falling = False
-            power_y = 0
-            power_x = random.randint(0, WIDTH - power_size)
-    
-    # Collision Check
-    if player_y + (WIDTH * (83 / 800)) < object_y + object_size and object_x < player_x + player_size and player_x < object_x + object_size:
-        SCORE += 1
-        LoadAssets.play_sound(earn_sound)
-        object_y = 0
-        object_x = random.randint(0, WIDTH - object_size)  
-        object_speed += 1
-
-    # Collision Check for Foul1
-    if player_y + (WIDTH * (83 / 800)) < foul1_y + foul1_size and foul1_x < player_x + player_size and player_x < foul1_x + foul1_size:
-        SCORE += foul1_score
-        LoadAssets.play_sound(lose_sound)
-        foul1_falling = False
-        foul1_y = 0
-
-    # Collision Check for Foul2
-    if player_y + (WIDTH * (83 / 800)) < foul2_y + foul2_size and foul2_x < player_x + player_size and player_x < foul2_x + foul2_size:
-        SCORE += foul2_score
-        LoadAssets.play_sound(lose_sound)
-        foul2_falling = False
-        foul2_y = 0
-
-    # Collision Check for Power
-    if player_y + (WIDTH * (83 / 800)) < power_y + power_size and power_x < player_x + player_size and player_x < power_x + power_size:
-        player_speed += WIDTH // 320
-        LoadAssets.play_sound(boost_sound)
-        power_falling = False
-        power_y = 0
-
-    # Boundaries Check
-    if player_x < 0:
-        player_x = 0
-    elif player_x + player_size > WIDTH - player_size:
-        player_x = WIDTH - player_size
-
-    # Text
-    if is_paused == False:
-        screen.blit(heart_img, (WIDTH - (WIDTH / 8), WIDTH * (11 / 320)))
-        text = regular_font.render("Score: " + str(SCORE), True, (0, 0, 0))
-        screen.blit(text, (70, 30))
-        heart_count = regular_font.render(":"+ str(HEART_COUNT), True, (0, 0, 0))
-        screen.blit(heart_count, (WIDTH - (WIDTH * (23 / 320)), WIDTH * (19 / 800)))
-    else:
-        text_paused = regular_font.render("Paused. Press Space to Resume", True, (0, 0, 0))
-        screen.blit(text_paused, (WIDTH / 2 - (WIDTH / 2.2), HEIGHT / 2.5))
-
-    # Lose!
-    if HEART_COUNT == 0:
-        LoadAssets.play_sound(game_over_sound)
-        current_state = GAME_OVER_STATE
-
-    # Drawing
-    screen.blit(object_img, (object_x, object_y))
-    screen.blit(player_img, (player_x, player_y))
-    screen.blit(foul1_img, (foul1_x, foul1_y))
-    screen.blit(foul2_img, (foul2_x, foul2_y))
-    screen.blit(power_img, (power_x, power_y))
-
-    # Renew screen
-    pygame.display.flip()
-
-    # Frames per sec
-    clock.tick(30)
-
-pygame.mixer.music.stop()
-
-# Game Over Screen
-while running == True:
-
-
-    pygame.display.flip()
-    clock.tick(30)
-
 # GameState classes
 class GameState:
     def __init__(self, game):
@@ -393,19 +159,64 @@ class GameState:
         pass
 
 class MainMenuState(GameState):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def update(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                self.game = GamePlayState(self)
     def render(self, screen):
         screen.blit(welcome_img, (0, 0))
 
 class GamePlayState(GameState):
-    def update(self):
-        # Drawing
+    def __init__(self, game):
+        super().__init__(game)
+        self.player = Player((MID_X, GROUND_Y),          # position
+                             (WIDTH // 10, WIDTH // 10), # scale_size
+                             (WIDTH // 10))              # speed
+        self.good_item1 = Item("Good", 'assets/graphics/coin.png',          # image_path
+                              (random.randint(0, WIDTH - WIDTH // 12), 0),  # position
+                              (WIDTH // 12, WIDTH // 12),                   # scale_size
+                              (WIDTH * (3 / 400)) )                         # speed
+        self.good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
+                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                              (WIDTH // 12, WIDTH // 12), 
+                              (WIDTH * (3 / 400)))
+        self.bonus_item = Item("Bonus", 'assets/graphics/pineapple.png', 
+                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                              (WIDTH // 12, WIDTH // 12), 
+                              (WIDTH * (3 / 400)))
+        self.bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
+                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                             (WIDTH // 12, WIDTH // 12), 
+                             (WIDTH * (3 / 400)))
+        self.bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
+                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                             (WIDTH // 12, WIDTH // 12), 
+                             (WIDTH * (3 / 400)))
+        self.bad_item3 = Item("Bad", 'assets/graphics/pineapple.png', 
+                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                             (WIDTH // 12, WIDTH // 12), 
+                             (WIDTH * (3 / 400)))
         
+    def update(self):
         # Losing Logic
         if HEART_COUNT == 0:
+            pygame.mixer.music.stop()
             LoadAssets.play_sound(game_over_sound)
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
+        (self.player).draw(screen, (self.player).image)
+        (self.good_item1).draw(screen, (self.good_item1).image)
+        (self.good_item2).draw(screen, (self.good_item2).image)
+        (self.bonus_item).draw(screen, (self.bonus_item).image)
+        (self.bad_item1).draw(screen, (self.bad_item1).image)
+        (self.bad_item2).draw(screen, (self.bad_item2).image)
+        (self.bad_item3).draw(screen, (self.bad_item3).image)
         
 class GameOverState(GameState):
     def update(self):
@@ -413,9 +224,7 @@ class GameOverState(GameState):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    running = False
+                
     def render(self, screen):
         screen.blit(game_over_screen, (0, 0))
         over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
@@ -447,37 +256,6 @@ class Game:
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(TITLE)
 
-        # Initialize objects here (player, good_item, bad_item, bonus_item, etc)
-        player = Player((MID_X, GROUND_Y),          # position
-                        (WIDTH // 10, WIDTH // 10), # scale_size
-                        WIDTH // 10)                # speed
-        good_item1 = Item("Good", 'assets/graphics/coin.png',          # image_path
-                          (random.randint(0, WIDTH - WIDTH // 12), 0), # position
-                          (WIDTH // 12, WIDTH // 12),                  # scale_size
-                          WIDTH * (3 / 400))                           # speed
-        good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
-                          (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                          (WIDTH // 12, WIDTH // 12), 
-                          WIDTH * (3 / 400))
-        bonus_item2 = Item("Bonus", 'assets/graphics/pineapple.png', 
-                          (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                          (WIDTH // 12, WIDTH // 12), 
-                          WIDTH * (3 / 400))
-        bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
-                          (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                          (WIDTH // 12, WIDTH // 12), 
-                          WIDTH * (3 / 400))
-        bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
-                          (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                          (WIDTH // 12, WIDTH // 12), 
-                          WIDTH * (3 / 400))
-        bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
-                          (random.randint(0, WIDTH - object_size), 0), 
-                          (WIDTH // 12, WIDTH // 12), 
-                          WIDTH * (3 / 400))
-        
-        game.state = GamePlayState(game, player, good_item1, good_item2, bonus_item2, bad_item1, bad_item2)
-
         while self.running:
             events = pygame.event.get()
             for event in events:
@@ -489,7 +267,7 @@ class Game:
             self.state.render(screen)
 
             pygame.display.flip()
-            clock.tick(30)
+            pygame.time.Clock().tick(30)
 
         pygame.quit()
 
