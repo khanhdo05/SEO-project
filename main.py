@@ -13,7 +13,7 @@ WIDTH = 1600
 HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
-GROUND = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
+GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 HEART_COUNT = 3 # Player starts off with 3 hearts
 SCORE = 0 # Total number of points player earns
 
@@ -79,7 +79,7 @@ class Item(GameEntity):
         self.rect.y += self.speed
         
         # If the item reaches the GROUND, reset its position through randomization
-        if self.rect.y >= GROUND:
+        if self.rect.y >= GROUND_Y:
             self.reset_random_position()
 
     def reset_random_position(self):
@@ -408,28 +408,79 @@ while current_state == GAME_OVER_STATE:
     pygame.display.flip()
     clock.tick(30)
 
-# Wait a minute!
-while current_state == HEHE:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                pygame.quit()
-                exit()
+# GameState classes
+class GameState:
+    def __init__(self, game):
+        self.game = game
 
-    game_over_text = pixel_font.render("HAPPY BIRTHDAT", True, (252, 43, 113))
-    press_to_quit = pixel_font.render("YAYYYYYY?", True, (252, 43, 113))
-    dear = pixel_small_font.render("TO:____", True, (251, 194, 7))
-    happy = pixel_smaller_font.render("Happy birthday lol lol lol lol True, (251, 194, 7))
-    score_final = pixel_smaller_font.render("X" + str(SCORE), True, (252, 43, 113))
-    screen.blit(game_over_background, (0, 0))
-    screen.blit(game_over_text, (WIDTH / 2 - (WIDTH * (3 / 8)), HEIGHT / 2 - (WIDTH / 8)))
-    screen.blit(press_to_quit, (WIDTH / 2 - (WIDTH * (21 / 80)), HEIGHT / 2))
-    screen.blit(dear, (WIDTH / 2 - (WIDTH * (3 / 20)), (WIDTH * (13 / 160))))
-    screen.blit(happy, (WIDTH / 2 - (WIDTH * (3 / 8)), HEIGHT - (WIDTH * (11 / 80))))
-    screen.blit(score_final, (WIDTH * (7 / 32), WIDTH * (9 / 80)))
-    screen.blit(heart_big_img, (WIDTH / 8, WIDTH / 10))
-    screen.blit(player_img, (WIDTH * 0.75, (WIDTH *  (29/320))))
-    pygame.display.flip()
+    def handle_events(self, events):
+        pass
+
+    def update(self):
+        pass
+
+    def render(self, screen):
+        pass
+
+class MainMenuState(GameState):
+    def render(self, screen):
+        screen.fill((0, 0, 0))  # Clear screen
+        # Render main menu
+
+class GameplayState(GameState):
+    def update(self):
+        # Update game logic
+
+    def render(self, screen):
+        # Render gameplay
+
+class PauseState(GameState):
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                self.game.toggle_pause()
+
+# Game class
+class Game:
+    def __init__(self):
+        self.running = True
+        self.state = MainMenuState(self)
+
+    def toggle_pause(self):
+        if isinstance(self.state, GameplayState):
+            self.state = PauseState(self)
+        elif isinstance(self.state, PauseState):
+            self.state = GameplayState(self)
+
+    def run(self):
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        clock = pygame.time.Clock()
+
+        player = Player('player.png', (SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+        enemies = [Enemy('enemy.png', (100, 100), 2)]
+        items = [Item('item.png', (200, 200), 'heal')]
+
+        while self.running:
+            events = pygame.event.get()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+            self.state.handle_events(events)
+            self.state.update()
+            self.state.render(screen)
+
+            pygame.display.flip()
+            clock.tick(60)
+
+        pygame.quit()
+
+# Main
+if __name__ == '__main__':
+    game = Game()
+    game.run()
+
+
+if __name__ == '__main__':
+    game = Game()
+    game.run()
