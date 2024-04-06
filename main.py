@@ -59,48 +59,63 @@ class Player(GameEntity):
             self.move_horizontally(-self.speed)
         if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
             self.move_horizontally(self.speed)
+
+# CollisionManager class to handle collision checks
+class CollisionManager:
+    @staticmethod
+    def check_collision(sprite1, sprite2):
+        '''Check collision between two sprites'''
+        return pygame.sprite.collide_rect(sprite1, sprite2)
     
 # Item as Child Class of GameEntity
 class Item(GameEntity):
     def __init__(self, type, image_path, position, scale_size, speed):
-        super().__init__(image_path, position, scale_size)
+        super().__init__(image_path, position, scale_size, speed)
         self.type = type
-        self.speed = speed
         self.falling = True # True or False
     
     def update_position(self):
         '''Update item's position'''
         self.rect.y += self.speed
         
-        # If the item reaches the bottom of the screen, reset its position
-        if self.rect.y >= HEIGHT:
-            self.rect.y = 0
-            self.rect.x = random.randint(0, WIDTH - self.rect.width)
+        # If the item reaches the GROUND, reset its position through randomization
+        if self.rect.y >= GROUND:
+            self.reset_random_position()
+
+    def reset_random_position(self):
+        '''Reset position through randomization'''
+        self.rect.y = 0
+        self.rect.x = random.randint(0, WIDTH - self.rect.width)
+    
+    def update_score(self):
+        if self.type == Type.GOOD
             
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
 
-# Background Image
-welcome_img = pygame.image.load('graphics/welcome.png')
-welcome_img = pygame.transform.scale(welcome_img, (WIDTH, HEIGHT))
-instruction_img = pygame.image.load('graphics/instruction.png')
-instruction_img = pygame.transform.scale(instruction_img, (WIDTH, HEIGHT))
-background_img = pygame.image.load('graphics/background.png')
-background_img = pygame.transform.scale(background_img, (WIDTH, HEIGHT))
-game_over_background = pygame.image.load('graphics/game_over_background.png')
-game_over_background = pygame.transform.scale(game_over_background, (WIDTH, HEIGHT))
-game_over_screen = pygame.image.load('graphics/game_over_screen.png')
-game_over_screen = pygame.transform.scale(game_over_screen, (WIDTH, HEIGHT))
+# Load assets
+class LoadAssets:
+    @staticmethod
+    def load_img(image_path, scale_size):
+        image = pygame.image.load(image_path)
+        image = pygame.transform.scale(welcome_img, scale_size)
+        return image
+
+welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
+instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
+background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
+game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
+game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
 # Heart Image
-heart_img = pygame.image.load('graphics/heart.png')
+heart_img = pygame.image.load('assets/graphics/heart.png')
 heart_img = pygame.transform.scale(heart_img, (WIDTH*0.05, WIDTH*0.05))
 heart_big_img = pygame.transform.scale(heart_img, (WIDTH*0.08125, WIDTH*0.08125))
 
 # Falling object's properties
 
 ## Main Object
-object_img = pygame.image.load('graphics/coin.png')
+object_img = pygame.image.load('assets/graphics/coin.png')
 object_size = WIDTH // 12
 object_img = pygame.transform.scale(object_img, (object_size, object_size))
 object_x = random.randint(0, WIDTH - object_size)
@@ -108,7 +123,7 @@ object_y = 0 # top of the screen
 object_speed = WIDTH * (3 / 400)
 
 ## Foul Object 1
-foul1_img = pygame.image.load('graphics/object.png')
+foul1_img = pygame.image.load('assets/graphics/object.png')
 foul1_size = WIDTH // 12
 foul1_img = pygame.transform.scale(foul1_img, (foul1_size, foul1_size))
 foul1_speed = WIDTH // 200
@@ -118,7 +133,7 @@ foul1_falling = False
 foul1_score = -1  # Negative score for strawberry
 
 ## Foul Object 2
-foul2_img = pygame.image.load('graphics/pineapple.png')
+foul2_img = pygame.image.load('assets/graphics/pineapple.png')
 foul2_size = WIDTH // 12
 foul2_img = pygame.transform.scale(foul2_img, (foul2_size, foul2_size))
 foul2_speed = WIDTH // 320
@@ -128,7 +143,7 @@ foul2_falling = False
 foul2_score = -2  # More negative score for pineapple
 
 # Power Up
-power_img = pygame.image.load('graphics/power.png')
+power_img = pygame.image.load('assets/graphics/power.png')
 power_size = WIDTH // 15
 power_img = pygame.transform.scale(power_img, (power_size, power_size))
 power_speed = WIDTH * (3 / 320)
@@ -137,7 +152,7 @@ power_y = 0
 power_falling = False
 
 # Player's properties
-player_img = pygame.image.load('graphics/player.png')
+player_img = pygame.image.load('assets/graphics/player.png')
 player_size = WIDTH // 10
 player_img = pygame.transform.scale(player_img, (player_size, player_size))
 player_x = WIDTH // 2                 # middle
