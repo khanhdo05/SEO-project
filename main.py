@@ -25,8 +25,11 @@ class GameEntity(pygame.sprite.Sprite):
         self.size = size
         self.speed = speed
 
-    def update(self):
-        pass # To be overriden
+    def move_horizontally(self):
+        self.rect.x += self.speed
+    
+    def move_vertically_down(self):
+        self.rect.y -= self.speed
         
     def draw(self, screen, img):
         screen.blit(img, (self.x, self.y))
@@ -35,12 +38,13 @@ class GameEntity(pygame.sprite.Sprite):
 class Player(GameEntity):
     def __init__(self, position, scale_size, size, speed):
         super().__init__('graphics/player.png', position, scale_size, size, speed)
-
-    def move_left(self):
-        self.rect.x -= self.speed
-
-    def move_right(self):
-        self.rect.x += self.speed
+      
+    def update(self, keys):
+        '''Handles player's movement'''
+        if keys[pygame.K_LEFT]:
+            self.move_horizontally(-self.speed)
+        if keys[pygame.K_RIGHT]:
+            self.move_horizontally(self.speed)
         
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
