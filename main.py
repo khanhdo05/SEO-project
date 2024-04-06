@@ -3,16 +3,25 @@
 # Libraries Initialization
 import pygame
 import random
+from enum import Enum
 from sys import exit
 pygame.init()
 
 # Define Constants
+TITLE = "Name of our game"
 WIDTH = 1600
 HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
-TITLE = "Name of our game"
+HEART_COUNT = 3 # Player starts off with 3 hearts
+POINTS_COUNT = 0 # Total number of points player earns
+
+# Type of item enum
+class Type(Enum):
+    GOOD = "Good" 
+    BAD = "Bad"
+    BONUS = "Bonus"
 
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -44,23 +53,30 @@ class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
         super().__init__("assets/graphics/player.png", position, scale_size, speed)
       
-    def update(self, keys):
+    def update_position(self, keys):
         '''Handles player's movement'''
         if keys[pygame.K_LEFT] and self.rect.x > 0: # Check left boundary
             self.move_horizontally(-self.speed)
         if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
             self.move_horizontally(self.speed)
-
+    
 # Item as Child Class of GameEntity
 class Item(GameEntity):
-    def __init__(self, image_path, position, scale_size, score_update, falling):
+    def __init__(self, type, image_path, position, scale_size, speed):
         super().__init__(image_path, position, scale_size)
-        self.size = WIDTH // 12
-        self.speed = self.size    
-        self.score_update = score_update
-        self.falling = falling # True or False
+        self.type = type
+        self.speed = speed
+        self.falling = True # True or False
+    
+    def update_position(self):
+        '''Update item's position'''
+        self.rect.y += self.speed
         
-        
+        # If the item reaches the bottom of the screen, reset its position
+        if self.rect.y >= HEIGHT:
+            self.rect.y = 0
+            self.rect.x = random.randint(0, WIDTH - self.rect.width)
+            
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
 
