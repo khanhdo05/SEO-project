@@ -113,14 +113,14 @@ class LoadAssets:
         sound.play()
 
 # Loads images
-welcome_img = LoadAssets.load_img('falling-object-game/assets/graphics/welcome.png', (WIDTH, HEIGHT))
-instruction_img = LoadAssets.load_img('falling-object-game/assets/graphics/instruction.png', (WIDTH, HEIGHT))
-background_img = LoadAssets.load_img('falling-object-game/assets/graphics/background.png', (WIDTH, HEIGHT))
-game_over_background = LoadAssets.load_img('falling-object-game/assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
-game_over_screen = LoadAssets.load_img('falling-object-game/assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
+welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
+instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
+background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
+game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
+game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
 # Heart Image
-heart_img_path = 'falling-object-game/assets/graphics/heart.png'
+heart_img_path = 'assets/graphics/heart.png'
 heart_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.05, WIDTH*0.05))
 heart_big_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.08125, WIDTH*0.08125))
 
