@@ -5,6 +5,7 @@ import pygame
 import random
 # from enum import Enum
 from sys import exit
+from assets import *
 pygame.init()
 
 # Define Constants
