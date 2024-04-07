@@ -167,7 +167,8 @@ class MainMenuState(GameState):
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                self.game = GamePlayState(self)
+                self.game.state = GamePlayState(self.game)
+                
     def render(self, screen):
         screen.blit(welcome_img, (0, 0))
 
@@ -203,10 +204,13 @@ class GamePlayState(GameState):
                              (WIDTH * (3 / 400)))
         
     def update(self):
+        # Game Logic here
+        
         # Losing Logic
         if HEART_COUNT == 0:
             pygame.mixer.music.stop()
             LoadAssets.play_sound(game_over_sound)
+            self.game = GameOverState(self.game)
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
