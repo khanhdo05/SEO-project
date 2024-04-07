@@ -3,7 +3,6 @@
 # Libraries Initialization
 import pygame
 import random
-# from enum import Enum
 from sys import exit
 pygame.init()
 
