@@ -40,12 +40,12 @@ class GameEntity(pygame.sprite.Sprite):
         self.rect.y -= self.speed
         
     def draw(self, screen, img):
-        screen.blit(img, (self.x, self.y))
+        screen.blit(img, (self.rect.x, self.rect.y))
 
 # Player as Child Class of GameEntity
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
-        super().__init__("assets/graphics/player.png", position, scale_size, speed)
+        super().__init__("falling-object-game/assets/graphics/player.png", position, scale_size, speed)
       
     def update_position(self, keys):
         '''Handles player's movement'''
@@ -113,31 +113,31 @@ class LoadAssets:
         sound.play()
 
 # Loads images
-welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
-instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
-background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
-game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
-game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
+welcome_img = LoadAssets.load_img('falling-object-game/assets/graphics/welcome.png', (WIDTH, HEIGHT))
+instruction_img = LoadAssets.load_img('falling-object-game/assets/graphics/instruction.png', (WIDTH, HEIGHT))
+background_img = LoadAssets.load_img('falling-object-game/assets/graphics/background.png', (WIDTH, HEIGHT))
+game_over_background = LoadAssets.load_img('falling-object-game/assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
+game_over_screen = LoadAssets.load_img('falling-object-game/assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
 # Heart Image
-heart_img_path = 'assets/graphics/heart.png'
+heart_img_path = 'falling-object-game/assets/graphics/heart.png'
 heart_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.05, WIDTH*0.05))
 heart_big_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.08125, WIDTH*0.08125))
 
 # Font
-game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
-pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
-pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
-pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
-regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+game_over_font = LoadAssets.load_fonts('falling-object-game/assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+pixel_font = LoadAssets.load_fonts('falling-object-game/assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
+pixel_small_font = LoadAssets.load_fonts('falling-object-game/assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
+pixel_smaller_font = LoadAssets.load_fonts('falling-object-game/assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
+regular_font = LoadAssets.load_fonts('falling-object-game/assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_small_font = LoadAssets.load_fonts('falling-object-game/assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 
 # Load the music file
-game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
-lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
-earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
-boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
-LoadAssets.load_songs('assets/audio/background_music.mp3')
+game_over_sound = LoadAssets.load_sound_effects('falling-object-game/assets/audio/lose.mp3')
+lose_sound = LoadAssets.load_sound_effects('falling-object-game/assets/audio/lose_p.mp3')
+earn_sound = LoadAssets.load_sound_effects('falling-object-game/assets/audio/earn.mp3')
+boost_sound = LoadAssets.load_sound_effects('falling-object-game/assets/audio/boost.mp3')
+LoadAssets.load_songs('falling-object-game/assets/audio/background_music.mp3')
 pygame.mixer.music.play(-1)  # Play in an infinite loop
 
 # Set the volume (0.0 to 1.0, where 0.0 is silent and 1.0 is full volume)
@@ -152,7 +152,7 @@ class GameState:
     def handle_events(self, events):
         pass
 
-    def update(self):
+    def update(self, events):
         pass
 
     def render(self, screen):
@@ -162,11 +162,14 @@ class MainMenuState(GameState):
     def __init__(self, game):
         super().__init__(game)
         
-    def update(self):
-        for event in pygame.event.get():
+    def update(self, events):
+        for event in events:
+            print("166")
             if event.type == pygame.QUIT:
+                print("169")
                 self.running = False
             elif event.type == pygame.KEYDOWN:
+                print("Hello")
                 self.game.state = GamePlayState(self.game)
                 
     def render(self, screen):
@@ -178,32 +181,32 @@ class GamePlayState(GameState):
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
-        self.good_item1 = Item("Good", 'assets/graphics/coin.png',          # image_path
+        self.good_item1 = Item("Good", 'falling-object-game/assets/graphics/coin.png',          # image_path
                               (random.randint(0, WIDTH - WIDTH // 12), 0),  # position
                               (WIDTH // 12, WIDTH // 12),                   # scale_size
                               (WIDTH * (3 / 400)) )                         # speed
-        self.good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
+        self.good_item2 = Item("Good", 'falling-object-game/assets/graphics/pineapple.png', 
                               (random.randint(0, WIDTH - WIDTH // 12), 0), 
                               (WIDTH // 12, WIDTH // 12), 
                               (WIDTH * (3 / 400)))
-        self.bonus_item = Item("Bonus", 'assets/graphics/pineapple.png', 
+        self.bonus_item = Item("Bonus", 'falling-object-game/assets/graphics/pineapple.png', 
                               (random.randint(0, WIDTH - WIDTH // 12), 0), 
                               (WIDTH // 12, WIDTH // 12), 
                               (WIDTH * (3 / 400)))
-        self.bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
+        self.bad_item1 = Item("Bad", 'falling-object-game/assets/graphics/coin.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
-        self.bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
+        self.bad_item2 = Item("Bad", 'falling-object-game/assets/graphics/pineapple.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
-        self.bad_item3 = Item("Bad", 'assets/graphics/pineapple.png', 
+        self.bad_item3 = Item("Bad", 'falling-object-game/assets/graphics/pineapple.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
         
-    def update(self):
+    def update(self, events):
         # Game Logic here
         
         # Losing Logic
@@ -223,8 +226,8 @@ class GamePlayState(GameState):
         (self.bad_item3).draw(screen, (self.bad_item3).image)
         
 class GameOverState(GameState):
-    def update(self):
-        for event in pygame.event.get():
+    def update(self, events):
+        for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
@@ -264,15 +267,16 @@ class Game:
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
+                    print("271")
                     self.running = False
-
+                    break
             self.state.handle_events(events)
-            self.state.update()
+            self.state.update(events)
             self.state.render(screen)
 
             pygame.display.flip()
             pygame.time.Clock().tick(30)
-
+        print("280")
         pygame.quit()
 
 # Main
