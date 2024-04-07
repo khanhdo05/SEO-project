@@ -13,7 +13,7 @@ HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
-HEART_COUNT = 3 # Player starts off with 3 hearts
+STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
 
 # GameEntity as Parent Class
@@ -84,8 +84,10 @@ class Item(GameEntity):
         '''Update score based on item type'''
         if self.type == "Good":
             SCORE += 1
+            if STAR < 5:
+                STAR += 0.5
         elif self.type == "Bad":
-            HEART_COUNT -= 1
+            STAR -= 1
         elif self.type == "Bonus":
             SCORE += 5
 
@@ -118,10 +120,10 @@ background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, H
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
-# Heart Image
-heart_img_path = 'assets/graphics/heart.png'
-heart_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.05, WIDTH*0.05))
-heart_big_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.08125, WIDTH*0.08125))
+# star Image
+star_img_path = 'assets/graphics/heart.png'
+star_img = LoadAssets.load_img(star_img_path, (WIDTH*0.05, WIDTH*0.05))
+star_big_img = LoadAssets.load_img(star_img_path, (WIDTH*0.08125, WIDTH*0.08125))
 
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
@@ -208,7 +210,7 @@ class GamePlayState(GameState):
             if event.type == pygame.QUIT:
                 self.running = False
             # Losing Logic
-            if HEART_COUNT == 0:
+            if STAR <= 0:
                 pygame.mixer.music.stop()
                 LoadAssets.play_sound(game_over_sound)
                 self.game = GameOverState(self.game)
