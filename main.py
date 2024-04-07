@@ -164,12 +164,9 @@ class MainMenuState(GameState):
         
     def update(self, events):
         for event in events:
-            print("166")
             if event.type == pygame.QUIT:
-                print("169")
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                print("Hello")
                 self.game.state = GamePlayState(self.game)
                 
     def render(self, screen):
@@ -181,10 +178,10 @@ class GamePlayState(GameState):
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
-        self.good_item1 = Item("Good", 'falling-object-game/assets/graphics/coin.png',          # image_path
-                              (random.randint(0, WIDTH - WIDTH // 12), 0),  # position
-                              (WIDTH // 12, WIDTH // 12),                   # scale_size
-                              (WIDTH * (3 / 400)) )                         # speed
+        self.good_item1 = Item("Good", 'falling-object-game/assets/graphics/coin.png', # image_path
+                              (random.randint(0, WIDTH - WIDTH // 12), 0),             # position
+                              (WIDTH // 12, WIDTH // 12),                              # scale_size
+                              (WIDTH * (3 / 400)) )                                    # speed
         self.good_item2 = Item("Good", 'falling-object-game/assets/graphics/pineapple.png', 
                               (random.randint(0, WIDTH - WIDTH // 12), 0), 
                               (WIDTH // 12, WIDTH // 12), 
@@ -207,13 +204,15 @@ class GamePlayState(GameState):
                              (WIDTH * (3 / 400)))
         
     def update(self, events):
+        for event in events:
         # Game Logic here
-        
-        # Losing Logic
-        if HEART_COUNT == 0:
-            pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound)
-            self.game = GameOverState(self.game)
+            if event.type == pygame.QUIT:
+                self.running = False
+            # Losing Logic
+            if HEART_COUNT == 0:
+                pygame.mixer.music.stop()
+                LoadAssets.play_sound(game_over_sound)
+                self.game = GameOverState(self.game)
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
@@ -229,8 +228,7 @@ class GameOverState(GameState):
     def update(self, events):
         for event in events:
             if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+                self.running = False
                 
     def render(self, screen):
         screen.blit(game_over_screen, (0, 0))
@@ -267,7 +265,6 @@ class Game:
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
-                    print("271")
                     self.running = False
                     break
             self.state.handle_events(events)
@@ -276,7 +273,7 @@ class Game:
 
             pygame.display.flip()
             pygame.time.Clock().tick(30)
-        print("280")
+            
         pygame.quit()
 
 # Main
