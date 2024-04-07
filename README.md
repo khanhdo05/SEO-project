@@ -1,6 +1,6 @@
-# Catch Me If You Can
+# Catch Falling Items
 
-Welcome to "Catch Me If You Can," a fun and interactive game built with Pygame!
+Welcome to "Catch Falling Items", a fun and interactive game built with Pygame!
 
 ## Prerequisites
 
