@@ -45,6 +45,7 @@ class GameEntity(pygame.sprite.Sprite):
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
         super().__init__("assets/graphics/player.png", position, scale_size, speed)
+        super().__init__("assets/graphics/player.png", position, scale_size, speed)
       
     def update_position(self, keys):
         '''Handles player's movement'''
@@ -117,6 +118,11 @@ instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH,
 background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
+welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
+instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
+background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
+game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
+game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
 # star Image
 star_img_path = 'assets/graphics/heart.png'
@@ -130,8 +136,19 @@ pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', 
 pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
 regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
 regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
+pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
+pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
+regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 
 # Load the music file
+game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
+lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
+earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
+boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+LoadAssets.load_songs('assets/audio/background_music.mp3')
 game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
 lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
 earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
@@ -180,11 +197,11 @@ class GamePlayState(GameState):
         self.good_item1 = Item("Good", 'assets/graphics/coin.png', # image_path
                               (random.randint(0, WIDTH - WIDTH // 12), 0),             # position
                               (WIDTH // 12, WIDTH // 12),                              # scale_size
-                              (WIDTH * (3 / 400)) )                                    # speed
+                              (WIDTH * (3 / 400)) )  
         self.good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
                               (random.randint(0, WIDTH - WIDTH // 12), 0), 
                               (WIDTH // 12, WIDTH // 12), 
-                              (WIDTH * (3 / 400)))
+                              (WIDTH * (3 / 400))) 
         self.bonus_item = Item("Bonus", 'assets/graphics/pineapple.png', 
                               (random.randint(0, WIDTH - WIDTH // 12), 0), 
                               (WIDTH // 12, WIDTH // 12), 
