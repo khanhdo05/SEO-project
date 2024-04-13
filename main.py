@@ -84,10 +84,8 @@ class Item(GameEntity):
         '''Update score based on item type'''
         if self.type == "Good":
             SCORE += 1
-            if STAR < 5:
-                STAR += 0.5
         elif self.type == "Bad":
-            STAR -= 1
+            STAR -= 0.5
         elif self.type == "Bonus":
             SCORE += 5
 
