@@ -3,6 +3,7 @@
 # Libraries Initialization
 import pygame
 import random
+import time
 from sys import exit
 pygame.init()
 
@@ -72,7 +73,7 @@ class Item(GameEntity):
     
     def update_position(self):
         '''Update item's position'''
-        self.rect.y += self.speed
+        self.rect.y += int(self.speed)
         
         # If the item reaches the GROUND, reset its position through randomization
         if self.rect.y >= GROUND_Y:
@@ -84,6 +85,7 @@ class Item(GameEntity):
         self.rect.x = random.randint(0, WIDTH - self.rect.width)
     
     def update_score(self):
+        global SCORE, STAR
         '''Update score based on item type'''
         if self.type == "Good":
             SCORE += 1
@@ -180,7 +182,7 @@ class MainMenuState(GameState):
     def __init__(self, game):
         super().__init__(game)
         
-    def update(self, events):
+    def handle_events(self, events):
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
@@ -193,10 +195,12 @@ class MainMenuState(GameState):
 class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
+        self.remaining_time = 3 * 60 # 3 minutes
+        self.start_time = time.time()
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
-        self.good_item1 = Item("Good", 'assets/graphics/coin.png', # image_path
+        self.good_item1 = Item("Good", 'assets/graphics/pineapple.png', # image_path
                               (random.randint(0, WIDTH - WIDTH // 12), 0),             # position
                               (WIDTH // 12, WIDTH // 12),                              # scale_size
                               (WIDTH * (3 / 400)) )  
@@ -212,18 +216,17 @@ class GamePlayState(GameState):
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
-        self.bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
+        self.bad_item2 = Item("Bad", 'assets/graphics/coin.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
-        self.bad_item3 = Item("Bad", 'assets/graphics/pineapple.png', 
+        self.bad_item3 = Item("Bad", 'assets/graphics/coin.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
         
-    def update(self, events):
+    def handle_events(self, events):
         for event in events:
-        # Game Logic here
             if event.type == pygame.QUIT:
                 self.running = False
                 
@@ -232,12 +235,50 @@ class GamePlayState(GameState):
 
             # Update player position based on key events
             self.player.update_position(keys)
+
+    def update(self, events):
+        # Update item positions
+        self.good_item1.update_position()
+        self.good_item2.update_position()
+        self.bonus_item.update_position()
+        self.bad_item1.update_position()
+        self.bad_item2.update_position()
+        self.bad_item3.update_position() 
+
+        # Collision check between player and items
+        self.collision_check_and_reset_position(self.good_item1)
+        self.collision_check_and_reset_position(self.good_item2)
+        self.collision_check_and_reset_position(self.bonus_item)
+        self.collision_check_and_reset_position(self.bad_item1)
+        self.collision_check_and_reset_position(self.bad_item2)
+        self.collision_check_and_reset_position(self.bad_item3)
+        
+        # Calculate elapsed time since the start
+        elapsed_time = time.time() - self.start_time
+
+        # Decrement remaining time by elapsed time
+        self.remaining_time -= elapsed_time
+
+        # Update start time for the next iteration
+        self.start_time = time.time()
+
+        # Check if the remaining time is less than or equal to 0
+        if self.remaining_time <= 0:
+            # End the game if time runs out
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(game_over_sound)
+            self.game.state = GameOverState(self.game)
             
-            # Losing Logic
-            if STAR <= 0:
-                pygame.mixer.music.stop()
-                LoadAssets.play_sound(game_over_sound)
-                self.game = GameOverState(self.game)
+        # Losing Logic
+        if STAR <= 0:
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(game_over_sound)
+            self.game.state = GameOverState(self.game)
+
+    def collision_check_and_reset_position(self, item):
+        if CollisionManager.check_collision(self.player, item):
+            item.reset_random_position()
+            item.update_score()
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
@@ -250,7 +291,7 @@ class GamePlayState(GameState):
         (self.bad_item3).draw(screen, (self.bad_item3).image)
         
 class GameOverState(GameState):
-    def update(self, events):
+    def handle_events(self, events):
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
@@ -285,6 +326,8 @@ class Game:
     def run(self):
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(TITLE)
+        
+        clock = pygame.time.Clock()
 
         while self.running:
             events = pygame.event.get()
@@ -298,7 +341,7 @@ class Game:
             self.state.render(screen)
 
             pygame.display.flip()
-            pygame.time.Clock().tick(30)
+            clock.tick(30)
             
         pygame.quit()
 
