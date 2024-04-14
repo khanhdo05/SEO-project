@@ -84,6 +84,7 @@ class Item(GameEntity):
         self.rect.x = random.randint(0, WIDTH - self.rect.width)
     
     def update_score(self):
+        global SCORE, STAR
         '''Update score based on item type'''
         if self.type == "Good":
             SCORE += 1
@@ -180,7 +181,7 @@ class MainMenuState(GameState):
     def __init__(self, game):
         super().__init__(game)
         
-    def update(self, events):
+    def handle_events(self, events):
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
@@ -240,12 +241,26 @@ class GamePlayState(GameState):
         self.bad_item1.update_position()
         self.bad_item2.update_position()
         self.bad_item3.update_position() 
+
+        # Collision check between player and items
+        self.collision_check_and_reset_position(self.good_item1)
+        self.collision_check_and_reset_position(self.good_item2)
+        self.collision_check_and_reset_position(self.bonus_item)
+        self.collision_check_and_reset_position(self.bad_item1)
+        self.collision_check_and_reset_position(self.bad_item2)
+        self.collision_check_and_reset_position(self.bad_item3)
             
         # Losing Logic
         if STAR <= 0:
             pygame.mixer.music.stop()
             LoadAssets.play_sound(game_over_sound)
             self.game = GameOverState(self.game)
+
+    def collision_check_and_reset_position(self, item):
+        if CollisionManager.check_collision(self.player, item):
+            print(SCORE)
+            item.reset_random_position()
+            item.update_score()
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
@@ -258,7 +273,7 @@ class GamePlayState(GameState):
         (self.bad_item3).draw(screen, (self.bad_item3).image)
         
 class GameOverState(GameState):
-    def update(self, events):
+    def handle_events(self, events):
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
