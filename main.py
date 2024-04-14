@@ -32,8 +32,11 @@ class GameEntity(pygame.sprite.Sprite):
         self.rect.topleft = position
         self.speed = speed
 
-    def move_horizontally(self):
+    def move_right(self):
         self.rect.x += self.speed
+        
+    def move_left(self):
+        self.rect.x -= self.speed
     
     def move_vertically_down(self):
         self.rect.y -= self.speed
@@ -45,14 +48,13 @@ class GameEntity(pygame.sprite.Sprite):
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
         super().__init__("assets/graphics/player.png", position, scale_size, speed)
-        super().__init__("assets/graphics/player.png", position, scale_size, speed)
       
     def update_position(self, keys):
         '''Handles player's movement'''
         if keys[pygame.K_LEFT] and self.rect.x > 0: # Check left boundary
-            self.move_horizontally(-self.speed)
+            self.move_left()
         if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
-            self.move_horizontally(self.speed)
+            self.move_right()
 
 # CollisionManager class to handle collision checks
 class CollisionManager:
@@ -224,6 +226,13 @@ class GamePlayState(GameState):
         # Game Logic here
             if event.type == pygame.QUIT:
                 self.running = False
+                
+            # Get the keys pressed
+            keys = pygame.key.get_pressed()
+
+            # Update player position based on key events
+            self.player.update_position(keys)
+            
             # Losing Logic
             if STAR <= 0:
                 pygame.mixer.music.stop()
@@ -283,6 +292,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     break
+                
             self.state.handle_events(events)
             self.state.update(events)
             self.state.render(screen)
