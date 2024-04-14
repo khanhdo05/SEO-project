@@ -3,6 +3,7 @@
 # Libraries Initialization
 import pygame
 import random
+import time
 from sys import exit
 pygame.init()
 
@@ -194,10 +195,12 @@ class MainMenuState(GameState):
 class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
+        self.remaining_time = 10 # seconds
+        self.start_time = time.time()
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
-        self.good_item1 = Item("Good", 'assets/graphics/coin.png', # image_path
+        self.good_item1 = Item("Good", 'assets/graphics/pineapple.png', # image_path
                               (random.randint(0, WIDTH - WIDTH // 12), 0),             # position
                               (WIDTH // 12, WIDTH // 12),                              # scale_size
                               (WIDTH * (3 / 400)) )  
@@ -213,11 +216,11 @@ class GamePlayState(GameState):
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
-        self.bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
+        self.bad_item2 = Item("Bad", 'assets/graphics/coin.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
-        self.bad_item3 = Item("Bad", 'assets/graphics/pineapple.png', 
+        self.bad_item3 = Item("Bad", 'assets/graphics/coin.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
@@ -249,16 +252,31 @@ class GamePlayState(GameState):
         self.collision_check_and_reset_position(self.bad_item1)
         self.collision_check_and_reset_position(self.bad_item2)
         self.collision_check_and_reset_position(self.bad_item3)
+        
+        # Calculate elapsed time since the start
+        elapsed_time = time.time() - self.start_time
+
+        # Decrement remaining time by elapsed time
+        self.remaining_time -= elapsed_time
+
+        # Update start time for the next iteration
+        self.start_time = time.time()
+
+        # Check if the remaining time is less than or equal to 0
+        if self.remaining_time <= 0:
+            # End the game if time runs out
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(game_over_sound)
+            self.game.state = GameOverState(self.game)
             
         # Losing Logic
         if STAR <= 0:
             pygame.mixer.music.stop()
             LoadAssets.play_sound(game_over_sound)
-            self.game = GameOverState(self.game)
+            self.game.state = GameOverState(self.game)
 
     def collision_check_and_reset_position(self, item):
         if CollisionManager.check_collision(self.player, item):
-            print(SCORE)
             item.reset_random_position()
             item.update_score()
 
