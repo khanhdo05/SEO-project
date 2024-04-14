@@ -3,19 +3,24 @@
 # Libraries Initialization
 import pygame
 import random
-# from enum import Enum
+from enum import Enum
 from sys import exit
 pygame.init()
 
 # Define Constants
 TITLE = "Name of our game"
-WIDTH = 1600
+WIDTH = 800
 HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 HEART_COUNT = 3 # Player starts off with 3 hearts
 SCORE = 0 # Total number of points player earns
+
+class ItemType(Enum):
+    GOOD = 4
+    BAD = 3
+    BONUS = 1
 
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -24,7 +29,7 @@ class GameEntity(pygame.sprite.Sprite):
             + image_path should follow the form: "assets/graphics/FILE_NAME.png"
             + position: (x,y) to place the image on the screen
             + scale_size: (x,y) as desired width and height of the image
-            + speed: a number that references the width in scale_size
+            + speed: a number that references the width in scale_size to match screen size 
         '''
         super().__init__()
         self.image = pygame.image.load(image_path).convert_alpha()
@@ -41,11 +46,12 @@ class GameEntity(pygame.sprite.Sprite):
         
     def draw(self, screen, img):
         screen.blit(img, (self.rect.x, self.rect.y))
+   
 
 # Player as Child Class of GameEntity
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
-        super().__init__("falling-object-game/assets/graphics/player.png", position, scale_size, speed)
+        super().__init__("assets/graphics/player.png", position, scale_size, speed)
       
     def update_position(self, keys):
         '''Handles player's movement'''
@@ -89,6 +95,7 @@ class Item(GameEntity):
             HEART_COUNT -= 1
         elif self.type == "Bonus":
             SCORE += 5
+        
 
 # Load assets
 class LoadAssets:
@@ -125,19 +132,19 @@ heart_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.05, WIDTH*0.05))
 heart_big_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.08125, WIDTH*0.08125))
 
 # Font
-game_over_font = LoadAssets.load_fonts('falling-object-game/assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
-pixel_font = LoadAssets.load_fonts('falling-object-game/assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
-pixel_small_font = LoadAssets.load_fonts('falling-object-game/assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
-pixel_smaller_font = LoadAssets.load_fonts('falling-object-game/assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('falling-object-game/assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
-regular_small_font = LoadAssets.load_fonts('falling-object-game/assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
+pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
+pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
+regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 
 # Load the music file
-game_over_sound = LoadAssets.load_sound_effects('falling-object-game/assets/audio/lose.mp3')
-lose_sound = LoadAssets.load_sound_effects('falling-object-game/assets/audio/lose_p.mp3')
-earn_sound = LoadAssets.load_sound_effects('falling-object-game/assets/audio/earn.mp3')
-boost_sound = LoadAssets.load_sound_effects('falling-object-game/assets/audio/boost.mp3')
-LoadAssets.load_songs('falling-object-game/assets/audio/background_music.mp3')
+game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
+lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
+earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
+boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+LoadAssets.load_songs('assets/audio/background_music.mp3')
 pygame.mixer.music.play(-1)  # Play in an infinite loop
 
 # Set the volume (0.0 to 1.0, where 0.0 is silent and 1.0 is full volume)
@@ -148,6 +155,7 @@ pygame.mixer.music.set_volume(volume_level)
 class GameState:
     def __init__(self, game):
         self.game = game
+        self.running = True
 
     def handle_events(self, events):
         pass
@@ -178,27 +186,27 @@ class GamePlayState(GameState):
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
-        self.good_item1 = Item("Good", 'falling-object-game/assets/graphics/coin.png', # image_path
+        self.good_item1 = Item("Good", 'assets/graphics/coin.png', # image_path
                               (random.randint(0, WIDTH - WIDTH // 12), 0),             # position
                               (WIDTH // 12, WIDTH // 12),                              # scale_size
                               (WIDTH * (3 / 400)) )                                    # speed
-        self.good_item2 = Item("Good", 'falling-object-game/assets/graphics/pineapple.png', 
+        self.good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
                               (random.randint(0, WIDTH - WIDTH // 12), 0), 
                               (WIDTH // 12, WIDTH // 12), 
                               (WIDTH * (3 / 400)))
-        self.bonus_item = Item("Bonus", 'falling-object-game/assets/graphics/pineapple.png', 
+        self.bonus_item = Item("Bonus", 'assets/graphics/pineapple.png', 
                               (random.randint(0, WIDTH - WIDTH // 12), 0), 
                               (WIDTH // 12, WIDTH // 12), 
                               (WIDTH * (3 / 400)))
-        self.bad_item1 = Item("Bad", 'falling-object-game/assets/graphics/coin.png', 
+        self.bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
-        self.bad_item2 = Item("Bad", 'falling-object-game/assets/graphics/pineapple.png', 
+        self.bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
-        self.bad_item3 = Item("Bad", 'falling-object-game/assets/graphics/pineapple.png', 
+        self.bad_item3 = Item("Bad", 'assets/graphics/pineapple.png', 
                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
@@ -214,8 +222,11 @@ class GamePlayState(GameState):
                 LoadAssets.play_sound(game_over_sound)
                 self.game = GameOverState(self.game)
 
-    def render(self, screen):
+            self.bad_item3.update()    
+
+    def render(self, screen, randomItem):
         screen.blit(background_img, (0, 0))
+        (randomItem).draw(screen, (randomItem).image)
         (self.player).draw(screen, (self.player).image)
         (self.good_item1).draw(screen, (self.good_item1).image)
         (self.good_item2).draw(screen, (self.good_item2).image)
@@ -223,6 +234,25 @@ class GamePlayState(GameState):
         (self.bad_item1).draw(screen, (self.bad_item1).image)
         (self.bad_item2).draw(screen, (self.bad_item2).image)
         (self.bad_item3).draw(screen, (self.bad_item3).image)
+
+
+    def randomize(self):
+        item_types = {
+            ItemType.GOOD: ("Good", 'assets/graphics/coin.png'),
+            ItemType.BAD: ("Bad", 'assets/graphics/pineapple.png'),
+            ItemType.BONUS: ("Bonus", 'assets/graphics/pineapple.png')
+        }
+
+        x = random.choice(list(item_types.keys()))
+        item_name, image_path = item_types[x]
+
+        randomItem = Item(item_name, image_path, 
+                     (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                     (WIDTH // 12, WIDTH // 12), 
+                     (WIDTH * (3 / 400)))
+
+        self.render(self.screen, randomItem)
+        
         
 class GameOverState(GameState):
     def update(self, events):
