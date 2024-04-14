@@ -195,7 +195,7 @@ class MainMenuState(GameState):
 class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
-        self.remaining_time = 10 # seconds
+        self.remaining_time = 3 * 60 # 3 minutes
         self.start_time = time.time()
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
