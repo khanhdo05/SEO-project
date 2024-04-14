@@ -72,7 +72,7 @@ class Item(GameEntity):
     
     def update_position(self):
         '''Update item's position'''
-        self.rect.y += self.speed
+        self.rect.y += int(self.speed)
         
         # If the item reaches the GROUND, reset its position through randomization
         if self.rect.y >= GROUND_Y:
@@ -221,9 +221,8 @@ class GamePlayState(GameState):
                              (WIDTH // 12, WIDTH // 12), 
                              (WIDTH * (3 / 400)))
         
-    def update(self, events):
+    def handle_events(self, events):
         for event in events:
-        # Game Logic here
             if event.type == pygame.QUIT:
                 self.running = False
                 
@@ -232,12 +231,21 @@ class GamePlayState(GameState):
 
             # Update player position based on key events
             self.player.update_position(keys)
+
+    def update(self, events):
+        # Update item positions
+        self.good_item1.update_position()
+        self.good_item2.update_position()
+        self.bonus_item.update_position()
+        self.bad_item1.update_position()
+        self.bad_item2.update_position()
+        self.bad_item3.update_position() 
             
-            # Losing Logic
-            if STAR <= 0:
-                pygame.mixer.music.stop()
-                LoadAssets.play_sound(game_over_sound)
-                self.game = GameOverState(self.game)
+        # Losing Logic
+        if STAR <= 0:
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(game_over_sound)
+            self.game = GameOverState(self.game)
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
@@ -285,6 +293,8 @@ class Game:
     def run(self):
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(TITLE)
+        
+        clock = pygame.time.Clock()
 
         while self.running:
             events = pygame.event.get()
@@ -298,7 +308,7 @@ class Game:
             self.state.render(screen)
 
             pygame.display.flip()
-            pygame.time.Clock().tick(30)
+            clock.tick(30)
             
         pygame.quit()
 
