@@ -277,36 +277,12 @@ class GamePlayState(GameState):
         self.item.rect.y += int(self.item.speed)
         
         # If the item reaches the GROUND, reset its position through randomization
-        if self.item.rect.y >= GROUND_Y:
-            print("106")
-            #self.reset_random_position()
+        if self.item.rect.y >= GROUND_Y or CollisionManager.check_collision(self.player, self.item):
             del self.item
             self.item = Item.spawn_item()
 
-    def collision_check_and_reset_position(self, item):
-        if CollisionManager.check_collision(self.player, item):
-            item.reset_random_position()
-            item.update_score()
-
     def update(self, events):
         self.update_position()
-        self.collision_check_and_reset_position(self.item)
-        # # Update item positions
-        # self.good_item1.update_position()
-        # self.good_item2.update_position()
-        # self.bonus_item.update_position()
-        # self.bad_item1.update_position()
-        # self.bad_item2.update_position()
-        # self.bad_item3.update_position() 
-
-        # # Collision check between player and items
-        # self.collision_check_and_reset_position(self.good_item1)
-        # self.collision_check_and_reset_position(self.good_item2)
-        # self.collision_check_and_reset_position(self.bonus_item)
-        # self.collision_check_and_reset_position(self.bad_item1)
-        # self.collision_check_and_reset_position(self.bad_item2)
-        # self.collision_check_and_reset_position(self.bad_item3)
-        # self.update_items()
         
         # Calculate elapsed time since the start
         elapsed_time = time.time() - self.start_time
@@ -340,35 +316,12 @@ class GamePlayState(GameState):
     #         self.spawn_item()
     #         self.spawn_timer = 0
 
-    # def spawn_item(self):
-    #     # Spawn a new item with random type, position, and speed
-    #     item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS]
-    #     chosen_type = random.choice(item_types)
 
-    #     if chosen_type == ItemType.GOOD:
-    #         image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 4)}.png'
-    #     elif chosen_type == ItemType.BAD:
-    #         image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 6)}.png'
-    #     else:  # ItemType.BONUS
-    #         image_path = f'assets/graphics/{chosen_type.name}/1.png'
-
-    #     new_item = Item(chosen_type, image_path, 
-    #                    (random.randint(0, WIDTH - WIDTH // 12), 0), 
-    #                    (WIDTH // 12, WIDTH // 12), 
-    #                    (WIDTH * (3 / 400)))
-
-    #     return new_item
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
         (self.item).draw(screen, (self.item).image)
         (self.player).draw(screen, (self.player).image)
-        # (self.good_item1).draw(screen, (self.good_item1).image)
-        # (self.good_item2).draw(screen, (self.good_item2).image)
-        # (self.bonus_item).draw(screen, (self.bonus_item).image)
-        # (self.bad_item1).draw(screen, (self.bad_item1).image)
-        # (self.bad_item2).draw(screen, (self.bad_item2).image)
-        # (self.bad_item3).draw(screen, (self.bad_item3).image)
         
 class GameOverState(GameState):
     def handle_events(self, events):
