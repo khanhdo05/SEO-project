@@ -14,12 +14,12 @@ HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
-HEART_COUNT = 3 # Player starts off with 3 hearts
+STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
 
 class ItemType(Enum):
     GOOD = 4
-    BAD = 3
+    BAD = 6
     BONUS = 1
 
 # GameEntity as Parent Class
@@ -42,11 +42,11 @@ class GameEntity(pygame.sprite.Sprite):
         self.rect.x += self.speed
     
     def move_vertically_down(self):
-        self.rect.y -= self.speed
+        self.rect.y += self.speed
         
     def draw(self, screen, img):
         screen.blit(img, (self.rect.x, self.rect.y))
-   
+    
 
 # Player as Child Class of GameEntity
 class Player(GameEntity):
@@ -68,12 +68,12 @@ class CollisionManager:
         return pygame.sprite.collide_rect(sprite1, sprite2)
     
 # Item as Child Class of GameEntity
-class Item(GameEntity):
+class Item(GameEntity):  
     def __init__(self, type, image_path, position, scale_size, speed):
         super().__init__(image_path, position, scale_size, speed)
         self.type = type
-        self.falling = True # True or False
-    
+        self.falling = True  
+
     def update_position(self):
         '''Update item's position'''
         self.rect.y += self.speed
@@ -86,16 +86,37 @@ class Item(GameEntity):
         '''Reset position through randomization'''
         self.rect.y = 0
         self.rect.x = random.randint(0, WIDTH - self.rect.width)
+
+    def update_items(self):
+    # Update item positions and speeds
+        for item in self.items:
+            item.update_position()  # Ensure this line is present
+            item.move_vertically_down()
+            item.speed = random.randint(int(WIDTH * (1 / 200)), int(WIDTH * (3 / 400)))
+        self.items.update()
     
+
     def update_score(self):
+        global SCORE, STAR
         '''Update score based on item type'''
         if self.type == "Good":
             SCORE += 1
         elif self.type == "Bad":
-            HEART_COUNT -= 1
+            STAR -= 0.5
         elif self.type == "Bonus":
             SCORE += 5
+
+    def update_star_image(self):
+        '''Update star image based on STAR count'''
+        if STAR >= 1:
+            star_img_path = 'assets/graphics/star/fullstar.png'
+        elif STAR >= 0.5:
+            star_img_path = 'assets/graphics/star/halfstar.png'
+        else:
+            star_img_path = 'assets/graphics/star/emptystar.png'
         
+        self.image = pygame.image.load(star_img_path).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (WIDTH*0.05, WIDTH*0.05))
 
 # Load assets
 class LoadAssets:
@@ -126,10 +147,10 @@ background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, H
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
-# Heart Image
-heart_img_path = 'assets/graphics/heart.png'
-heart_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.05, WIDTH*0.05))
-heart_big_img = LoadAssets.load_img(heart_img_path, (WIDTH*0.08125, WIDTH*0.08125))
+# Star Image
+star_img_path = 'assets/graphics/star/fullstar.png'
+star_img = LoadAssets.load_img(star_img_path, (WIDTH*0.05, WIDTH*0.05))
+star_big_img = LoadAssets.load_img(star_img_path, (WIDTH*0.08125, WIDTH*0.08125))
 
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
@@ -183,91 +204,93 @@ class MainMenuState(GameState):
 class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
-        self.player = Player((MID_X, GROUND_Y),          # position
-                             (WIDTH // 10, WIDTH // 10), # scale_size
-                             (WIDTH // 10))              # speed
-        self.good_item1 = Item("Good", 'assets/graphics/coin.png', # image_path
-                              (random.randint(0, WIDTH - WIDTH // 12), 0),             # position
-                              (WIDTH // 12, WIDTH // 12),                              # scale_size
-                              (WIDTH * (3 / 400)) )                                    # speed
-        self.good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
-                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                              (WIDTH // 12, WIDTH // 12), 
-                              (WIDTH * (3 / 400)))
-        self.bonus_item = Item("Bonus", 'assets/graphics/pineapple.png', 
-                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                              (WIDTH // 12, WIDTH // 12), 
-                              (WIDTH * (3 / 400)))
-        self.bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
-                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                             (WIDTH // 12, WIDTH // 12), 
-                             (WIDTH * (3 / 400)))
-        self.bad_item2 = Item("Bad", 'assets/graphics/pineapple.png', 
-                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                             (WIDTH // 12, WIDTH // 12), 
-                             (WIDTH * (3 / 400)))
-        self.bad_item3 = Item("Bad", 'assets/graphics/pineapple.png', 
-                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                             (WIDTH // 12, WIDTH // 12), 
-                             (WIDTH * (3 / 400)))
-        
+        # Initialize player and item group
+        self.player = Player((MID_X, GROUND_Y), (WIDTH // 10, WIDTH // 10), (WIDTH // 10))
+        self.items = pygame.sprite.Group()
+        self.spawn_timer = 0
+        self.spawn_interval = 2000  # Spawn interval in milliseconds
+
     def update(self, events):
-        for event in events:
-        # Game Logic here
-            if event.type == pygame.QUIT:
-                self.running = False
-            # Losing Logic
-            if HEART_COUNT == 0:
-                pygame.mixer.music.stop()
-                LoadAssets.play_sound(game_over_sound)
-                self.game = GameOverState(self.game)
+        # Update items, check collisions, and loss condition
+        self.update_items()
+        self.check_loss_condition()
 
-            self.bad_item3.update()    
+    def update_items(self):
+        # Update item positions
+        for item in self.items:
+            item.move_vertically_down()
+        self.items.update()
 
-    def render(self, screen, randomItem):
-        screen.blit(background_img, (0, 0))
-        (randomItem).draw(screen, (randomItem).image)
-        (self.player).draw(screen, (self.player).image)
-        (self.good_item1).draw(screen, (self.good_item1).image)
-        (self.good_item2).draw(screen, (self.good_item2).image)
-        (self.bonus_item).draw(screen, (self.bonus_item).image)
-        (self.bad_item1).draw(screen, (self.bad_item1).image)
-        (self.bad_item2).draw(screen, (self.bad_item2).image)
-        (self.bad_item3).draw(screen, (self.bad_item3).image)
+        # Spawn new items based on timer
+        self.spawn_timer += 1
+        if self.spawn_timer >= self.spawn_interval:
+            self.spawn_item()
+            self.spawn_timer = 0
 
+    def spawn_item(self):
+        # Spawn a new item with random type, position, and speed
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS]
+        chosen_type = random.choice(item_types)
 
-    def randomize(self):
-        item_types = {
-            ItemType.GOOD: ("Good", 'assets/graphics/coin.png'),
-            ItemType.BAD: ("Bad", 'assets/graphics/pineapple.png'),
-            ItemType.BONUS: ("Bonus", 'assets/graphics/pineapple.png')
-        }
+        if chosen_type == ItemType.GOOD:
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/{random.randint(1, 4)}.png'
+        elif chosen_type == ItemType.BAD:
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/{random.randint(1, 6)}.png'
+        else:  # ItemType.BONUS
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
 
-        x = random.choice(list(item_types.keys()))
-        item_name, image_path = item_types[x]
+        new_item = Item(chosen_type.name, image_path, 
+                        (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                        (WIDTH // 12, WIDTH // 12), 
+                        (WIDTH * (3 / 400)))
+        self.items.add(new_item)
 
-        randomItem = Item(item_name, image_path, 
-                     (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                     (WIDTH // 12, WIDTH // 12), 
-                     (WIDTH * (3 / 400)))
+    def check_loss_condition(self):
+        # Check if player lost the game
+        if STAR <= 0:
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(game_over_sound)
+            self.game.state = GameOverState(self.game)
 
-        self.render(self.screen, randomItem)
-        
-        
-class GameOverState(GameState):
-    def update(self, events):
+    def handle_events(self, events):
+        # Handle player input events
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
-                
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    self.player.move_horizontally(-self.player.speed)
+                elif event.key == pygame.K_RIGHT:
+                    self.player.move_horizontally(self.player.speed)
+    
     def render(self, screen):
-        screen.blit(game_over_screen, (0, 0))
-        over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
-        screen.blit(over_text, (WIDTH / 2 - (WIDTH * (5 / 16)), HEIGHT / 2 - (WIDTH / 8)))
-        play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
-        screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
-        next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
-        screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+        # Render background, items, and player
+        screen.blit(background_img, (0, 0))
+        self.items.draw(screen, self.items.image)
+        self.player.draw(screen, self.player.image)
+
+
+class GameOverState(GameState):
+    def __init__(self, game):
+        super().__init__(game)
+        self.font = pygame.font.Font(None, 64)  # Choose a font and font size for the game over message
+        self.game_over_text = self.font.render("Game Over", True, (255, 0, 0))  # Render the game over message
+        self.restart_text = self.font.render("Press R to Restart", True, (255, 255, 255))  # Render the restart message
+        self.quit_text = self.font.render("Press Q to Quit", True, (255, 255, 255))  # Render the quit message
+
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:  # If 'R' is pressed, restart the game
+                    self.game.restart()
+                elif event.key == pygame.K_q:  # If 'Q' is pressed, quit the game
+                    pygame.quit()
+
+    def render(self, screen):
+        screen.blit(self.game_over_text, (WIDTH // 2 - self.game_over_text.get_width() // 2, HEIGHT // 3))
+        screen.blit(self.restart_text, (WIDTH // 2 - self.restart_text.get_width() // 2, HEIGHT // 2))
+        screen.blit(self.quit_text, (WIDTH // 2 - self.quit_text.get_width() // 2, HEIGHT // 2 + 50))
+
 
 class PauseState(GameState):
     def handle_events(self, events):
@@ -280,6 +303,7 @@ class Game:
     def __init__(self):
         self.running = True
         self.state = MainMenuState(self)
+        self.player_img_path = 'assets/graphics/player.png'
 
     def toggle_pause(self):
         if isinstance(self.state, GamePlayState):
@@ -291,15 +315,19 @@ class Game:
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(TITLE)
 
+    
         while self.running:
             events = pygame.event.get()
             for event in events:
                 if event.type == pygame.QUIT:
                     self.running = False
-                    break
-            self.state.handle_events(events)
+                    
+            keys = pygame.key.get_pressed()
+            
+
             self.state.update(events)
             self.state.render(screen)
+            
 
             pygame.display.flip()
             pygame.time.Clock().tick(30)
