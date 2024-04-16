@@ -84,9 +84,9 @@ class Item(GameEntity):
         chosen_type = random.choice(item_types)
 
         if chosen_type == ItemType.GOOD:
-            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 4)}.png'
+            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
         elif chosen_type == ItemType.BAD:
-            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 6)}.png'
+            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
         else:  # ItemType.BONUS
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
 
@@ -96,24 +96,6 @@ class Item(GameEntity):
                        (WIDTH * (3 / 400)))
 
         return new_item   
-        
-    # def update_position(self):
-    #     '''Update item's position'''
-    #     self.rect.y += int(self.speed)
-        
-    #     # If the item reaches the GROUND, reset its position through randomization
-    #     if self.rect.y >= GROUND_Y:
-    #         print("106")
-    #         #self.reset_random_position()
-    #         del self.item
-    #         self.item = Item.spawn_item()
-            
-            
-    # TO DO: This is supposed to fire off randomize_item
-    def reset_random_position(self):
-        '''Reset position through randomization'''
-        self.rect.y = 0
-        self.rect.x = random.randint(0, WIDTH - self.rect.width)
     
     def update_score(self):
         global SCORE, STAR
@@ -290,8 +272,6 @@ class GamePlayState(GameState):
     #     if self.spawn_timer >= 60:
     #         self.spawn_item()
     #         self.spawn_timer = 0
-
-
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
