@@ -77,7 +77,26 @@ class Item(GameEntity):
         self.type = type
         self.falling = True # True or False
         
-    # TO DO: This is supposed to fire off randomize_item
+    @staticmethod 
+    def spawn_item():
+        # Spawn a new item with random type, position, and speed
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS]
+        chosen_type = random.choice(item_types)
+
+        if chosen_type == ItemType.GOOD:
+            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 4)}.png'
+        elif chosen_type == ItemType.BAD:
+            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 6)}.png'
+        else:  # ItemType.BONUS
+            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+
+        new_item = Item(chosen_type, image_path, 
+                       (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                       (WIDTH // 12, WIDTH // 12), 
+                       (WIDTH * (3 / 400)))
+
+        return new_item   
+        
     def update_position(self):
         '''Update item's position'''
         self.rect.y += int(self.speed)
@@ -85,7 +104,8 @@ class Item(GameEntity):
         # If the item reaches the GROUND, reset its position through randomization
         if self.rect.y >= GROUND_Y:
             self.reset_random_position()
-
+            
+    # TO DO: This is supposed to fire off randomize_item
     def reset_random_position(self):
         '''Reset position through randomization'''
         self.rect.y = 0
@@ -208,7 +228,7 @@ class GamePlayState(GameState):
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
         self.items = pygame.sprite.Group()
-        self.item = self.spawn_item()
+        self.item = Item.spawn_item()
         self.spawn_timer = 0
         self.spawn_interval = 2000  # Spawn interval in milliseconds
         
@@ -299,24 +319,24 @@ class GamePlayState(GameState):
     #         self.spawn_item()
     #         self.spawn_timer = 0
 
-    def spawn_item(self):
-        # Spawn a new item with random type, position, and speed
-        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS]
-        chosen_type = random.choice(item_types)
+    # def spawn_item(self):
+    #     # Spawn a new item with random type, position, and speed
+    #     item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS]
+    #     chosen_type = random.choice(item_types)
 
-        if chosen_type == ItemType.GOOD:
-            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 4)}.png'
-        elif chosen_type == ItemType.BAD:
-            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 6)}.png'
-        else:  # ItemType.BONUS
-            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+    #     if chosen_type == ItemType.GOOD:
+    #         image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 4)}.png'
+    #     elif chosen_type == ItemType.BAD:
+    #         image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, 6)}.png'
+    #     else:  # ItemType.BONUS
+    #         image_path = f'assets/graphics/{chosen_type.name}/1.png'
 
-        new_item = Item(chosen_type, image_path, 
-                       (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                       (WIDTH // 12, WIDTH // 12), 
-                       (WIDTH * (3 / 400)))
-        #self.items.add(new_item)
-        return new_item
+    #     new_item = Item(chosen_type, image_path, 
+    #                    (random.randint(0, WIDTH - WIDTH // 12), 0), 
+    #                    (WIDTH // 12, WIDTH // 12), 
+    #                    (WIDTH * (3 / 400)))
+
+    #     return new_item
     
     def collision_check_and_reset_position(self, item):
         if CollisionManager.check_collision(self.player, item):
