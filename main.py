@@ -232,9 +232,15 @@ class GamePlayState(GameState):
     def update_position(self):
         '''Update item's position'''
         self.item.rect.y += int(self.item.speed)
+        self.spawn_timer += 1
+        
+        if self.spawn_timer >= self.spawn_interval:
+            self.item = Item.spawn_item()
+            self.spawn_timer = 0
         
         # If the item reaches the GROUND, reset its position through randomization
         if self.item.rect.y >= GROUND_Y or CollisionManager.check_collision(self.player, self.item):
+            self.item.update_score()
             del self.item
             self.item = Item.spawn_item()
 
