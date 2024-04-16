@@ -236,31 +236,6 @@ class GamePlayState(GameState):
         self.spawn_timer = 0
         self.spawn_interval = 2000  # Spawn interval in milliseconds
         
-        # self.good_item1 = Item("Good", 'assets/graphics/pineapple.png', # image_path
-        #                       (random.randint(0, WIDTH - WIDTH // 12), 0),             # position
-        #                       (WIDTH // 12, WIDTH // 12),                              # scale_size
-        #                       (WIDTH * (3 / 400)) )  
-        # self.good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
-        #                       (random.randint(0, WIDTH - WIDTH // 12), 0), 
-        #                       (WIDTH // 12, WIDTH // 12), 
-        #                       (WIDTH * (3 / 400))) 
-        # self.bonus_item = Item("Bonus", 'assets/graphics/pineapple.png', 
-        #                       (random.randint(0, WIDTH - WIDTH // 12), 0), 
-        #                       (WIDTH // 12, WIDTH // 12), 
-        #                       (WIDTH * (3 / 400)))
-        # self.bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
-        #                      (random.randint(0, WIDTH - WIDTH // 12), 0), 
-        #                      (WIDTH // 12, WIDTH // 12), 
-        #                      (WIDTH * (3 / 400)))
-        # self.bad_item2 = Item("Bad", 'assets/graphics/coin.png', 
-        #                      (random.randint(0, WIDTH - WIDTH // 12), 0), 
-        #                      (WIDTH // 12, WIDTH // 12), 
-        #                      (WIDTH * (3 / 400)))
-        # self.bad_item3 = Item("Bad", 'assets/graphics/coin.png', 
-        #                      (random.randint(0, WIDTH - WIDTH // 12), 0), 
-        #                      (WIDTH // 12, WIDTH // 12), 
-        #                      (WIDTH * (3 / 400)))
-        
     def handle_events(self, events):
         for event in events:
             if event.type == pygame.QUIT:
