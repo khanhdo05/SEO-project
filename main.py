@@ -97,13 +97,17 @@ class Item(GameEntity):
 
         return new_item   
         
-    def update_position(self):
-        '''Update item's position'''
-        self.rect.y += int(self.speed)
+    # def update_position(self):
+    #     '''Update item's position'''
+    #     self.rect.y += int(self.speed)
         
-        # If the item reaches the GROUND, reset its position through randomization
-        if self.rect.y >= GROUND_Y:
-            self.reset_random_position()
+    #     # If the item reaches the GROUND, reset its position through randomization
+    #     if self.rect.y >= GROUND_Y:
+    #         print("106")
+    #         #self.reset_random_position()
+    #         del self.item
+    #         self.item = Item.spawn_item()
+            
             
     # TO DO: This is supposed to fire off randomize_item
     def reset_random_position(self):
@@ -267,9 +271,26 @@ class GamePlayState(GameState):
 
             # Update player position based on key events
             self.player.update_position(keys)
+            
+    def update_position(self):
+        '''Update item's position'''
+        self.item.rect.y += int(self.item.speed)
+        
+        # If the item reaches the GROUND, reset its position through randomization
+        if self.item.rect.y >= GROUND_Y:
+            print("106")
+            #self.reset_random_position()
+            del self.item
+            self.item = Item.spawn_item()
+
+    def collision_check_and_reset_position(self, item):
+        if CollisionManager.check_collision(self.player, item):
+            item.reset_random_position()
+            item.update_score()
 
     def update(self, events):
-        (self.item).update_position()
+        self.update_position()
+        self.collision_check_and_reset_position(self.item)
         # # Update item positions
         # self.good_item1.update_position()
         # self.good_item2.update_position()
@@ -337,11 +358,6 @@ class GamePlayState(GameState):
     #                    (WIDTH * (3 / 400)))
 
     #     return new_item
-    
-    def collision_check_and_reset_position(self, item):
-        if CollisionManager.check_collision(self.player, item):
-            item.reset_random_position()
-            item.update_score()
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
