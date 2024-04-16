@@ -10,7 +10,7 @@ pygame.init()
 
 # Define Constants
 TITLE = "Name of our game"
-WIDTH = 1600
+WIDTH = 800
 HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
