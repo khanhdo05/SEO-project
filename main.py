@@ -4,12 +4,13 @@
 import pygame
 import random
 import time
+from enum import Enum
 from sys import exit
 pygame.init()
 
 # Define Constants
 TITLE = "Name of our game"
-WIDTH = 1600
+WIDTH = 800
 HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
@@ -17,6 +18,11 @@ GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
 
+class ItemType(Enum):
+    GOOD = 4
+    BAD = 6
+    BONUS = 1
+    
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
     def __init__(self, image_path, position, scale_size, speed):
@@ -70,28 +76,35 @@ class Item(GameEntity):
         super().__init__(image_path, position, scale_size, speed)
         self.type = type
         self.falling = True # True or False
-    
-    def update_position(self):
-        '''Update item's position'''
-        self.rect.y += int(self.speed)
         
-        # If the item reaches the GROUND, reset its position through randomization
-        if self.rect.y >= GROUND_Y:
-            self.reset_random_position()
+    @staticmethod 
+    def spawn_item():
+        # Spawn a new item with random type, position, and speed
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS]
+        chosen_type = random.choice(item_types)
 
-    def reset_random_position(self):
-        '''Reset position through randomization'''
-        self.rect.y = 0
-        self.rect.x = random.randint(0, WIDTH - self.rect.width)
+        if chosen_type == ItemType.GOOD:
+            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
+        elif chosen_type == ItemType.BAD:
+            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
+        else:  # ItemType.BONUS
+            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+
+        new_item = Item(chosen_type, image_path, 
+                       (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                       (WIDTH // 12, WIDTH // 12), 
+                       (WIDTH * (3 / 400)))
+
+        return new_item   
     
     def update_score(self):
         global SCORE, STAR
         '''Update score based on item type'''
-        if self.type == "Good":
+        if self.type == ItemType.GOOD:
             SCORE += 1
-        elif self.type == "Bad":
+        elif self.type == ItemType.BAD:
             STAR -= 0.5
-        elif self.type == "Bonus":
+        elif self.type == ItemType.BONUS:
             SCORE += 5
 
 # Load assets
@@ -129,9 +142,9 @@ game_over_background = LoadAssets.load_img('assets/graphics/game_over_background
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
 # star Image
-star_img_path = 'assets/graphics/heart.png'
-star_img = LoadAssets.load_img(star_img_path, (WIDTH*0.05, WIDTH*0.05))
-star_big_img = LoadAssets.load_img(star_img_path, (WIDTH*0.08125, WIDTH*0.08125))
+# star_img_path = 'assets/graphics/heart.png'
+# star_img = LoadAssets.load_img(star_img_path, (WIDTH*0.05, WIDTH*0.05))
+# star_big_img = LoadAssets.load_img(star_img_path, (WIDTH*0.08125, WIDTH*0.08125))
 
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
@@ -200,30 +213,10 @@ class GamePlayState(GameState):
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
-        self.good_item1 = Item("Good", 'assets/graphics/pineapple.png', # image_path
-                              (random.randint(0, WIDTH - WIDTH // 12), 0),             # position
-                              (WIDTH // 12, WIDTH // 12),                              # scale_size
-                              (WIDTH * (3 / 400)) )  
-        self.good_item2 = Item("Good", 'assets/graphics/pineapple.png', 
-                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                              (WIDTH // 12, WIDTH // 12), 
-                              (WIDTH * (3 / 400))) 
-        self.bonus_item = Item("Bonus", 'assets/graphics/pineapple.png', 
-                              (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                              (WIDTH // 12, WIDTH // 12), 
-                              (WIDTH * (3 / 400)))
-        self.bad_item1 = Item("Bad", 'assets/graphics/coin.png', 
-                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                             (WIDTH // 12, WIDTH // 12), 
-                             (WIDTH * (3 / 400)))
-        self.bad_item2 = Item("Bad", 'assets/graphics/coin.png', 
-                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                             (WIDTH // 12, WIDTH // 12), 
-                             (WIDTH * (3 / 400)))
-        self.bad_item3 = Item("Bad", 'assets/graphics/coin.png', 
-                             (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                             (WIDTH // 12, WIDTH // 12), 
-                             (WIDTH * (3 / 400)))
+        self.items = pygame.sprite.Group()
+        self.item = Item.spawn_item()
+        self.spawn_timer = 0
+        self.spawn_interval = 2000  # Spawn interval in milliseconds
         
     def handle_events(self, events):
         for event in events:
@@ -235,23 +228,24 @@ class GamePlayState(GameState):
 
             # Update player position based on key events
             self.player.update_position(keys)
+            
+    def update_position(self):
+        '''Update item's position'''
+        self.item.rect.y += int(self.item.speed)
+        self.spawn_timer += 1
+        
+        if self.spawn_timer >= self.spawn_interval:
+            self.item = Item.spawn_item()
+            self.spawn_timer = 0
+        
+        # If the item reaches the GROUND, reset its position through randomization
+        if self.item.rect.y >= GROUND_Y or CollisionManager.check_collision(self.player, self.item):
+            self.item.update_score()
+            del self.item
+            self.item = Item.spawn_item()
 
     def update(self, events):
-        # Update item positions
-        self.good_item1.update_position()
-        self.good_item2.update_position()
-        self.bonus_item.update_position()
-        self.bad_item1.update_position()
-        self.bad_item2.update_position()
-        self.bad_item3.update_position() 
-
-        # Collision check between player and items
-        self.collision_check_and_reset_position(self.good_item1)
-        self.collision_check_and_reset_position(self.good_item2)
-        self.collision_check_and_reset_position(self.bonus_item)
-        self.collision_check_and_reset_position(self.bad_item1)
-        self.collision_check_and_reset_position(self.bad_item2)
-        self.collision_check_and_reset_position(self.bad_item3)
+        self.update_position()
         
         # Calculate elapsed time since the start
         elapsed_time = time.time() - self.start_time
@@ -274,21 +268,21 @@ class GamePlayState(GameState):
             pygame.mixer.music.stop()
             LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
+            
+    # def update_items(self):
+    #     (self.spawn_item()).update_position() 
 
-    def collision_check_and_reset_position(self, item):
-        if CollisionManager.check_collision(self.player, item):
-            item.reset_random_position()
-            item.update_score()
+    #     # Spawn new items based on timer
+    #     # TO DO: decide whether we should have this take precedence over reset_random_position()
+    #     self.spawn_timer += 1
+    #     if self.spawn_timer >= 60:
+    #         self.spawn_item()
+    #         self.spawn_timer = 0
 
     def render(self, screen):
         screen.blit(background_img, (0, 0))
+        (self.item).draw(screen, (self.item).image)
         (self.player).draw(screen, (self.player).image)
-        (self.good_item1).draw(screen, (self.good_item1).image)
-        (self.good_item2).draw(screen, (self.good_item2).image)
-        (self.bonus_item).draw(screen, (self.bonus_item).image)
-        (self.bad_item1).draw(screen, (self.bad_item1).image)
-        (self.bad_item2).draw(screen, (self.bad_item2).image)
-        (self.bad_item3).draw(screen, (self.bad_item3).image)
         
 class GameOverState(GameState):
     def handle_events(self, events):
