@@ -218,7 +218,8 @@ class GamePlayState(GameState):
     def update_items(self):
         # Update item positions
         for item in self.items:
-            item.move_vertically_down()
+            print("Hello") 
+            item.move_vertically_down()   
         self.items.update()
 
         # Spawn new items based on timer
