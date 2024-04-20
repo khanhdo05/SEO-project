@@ -14,13 +14,14 @@ HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
-STAR = 5 # Player starts off with 5 hearts
+STAR = 5 # Player starts off with 5 stars
 SCORE = 0 # Total number of points player earns
 
 class ItemType(Enum):
     GOOD = 4
     BAD = 6
     BONUS = 1
+    SLOWDOWN = 1
 
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -220,7 +221,6 @@ class GamePlayState(GameState):
         for item in self.items:
             print("Hello") 
             item.move_vertically_down()   
-        self.items.update()
 
         # Spawn new items based on timer
         self.spawn_timer += 1
@@ -228,16 +228,23 @@ class GamePlayState(GameState):
             self.spawn_item()
             self.spawn_timer = 0
 
+            if pygame.sprite.collide_rect(item, self.player):
+                if item.item_type == ItemType.SLOWDOWN:
+                    self.player.decrease_speed()  
+        self.items.update()
+
     def spawn_item(self):
         # Spawn a new item with random type, position, and speed
-        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS]
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS] + [ItemType.SLOWDOWN]
         chosen_type = random.choice(item_types)
 
         if chosen_type == ItemType.GOOD:
             image_path = f'assets/graphics/{chosen_type.name.lower()}/{random.randint(1, 4)}.png'
         elif chosen_type == ItemType.BAD:
             image_path = f'assets/graphics/{chosen_type.name.lower()}/{random.randint(1, 6)}.png'
-        else:  # ItemType.BONUS
+        elif chosen_type == ItemType.BONUS:
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
+        else: 
             image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
 
         new_item = Item(chosen_type.name, image_path, 
@@ -267,7 +274,7 @@ class GamePlayState(GameState):
     def render(self, screen):
         # Render background, items, and player
         screen.blit(background_img, (0, 0))
-        self.items.draw(screen, self.items.image)
+        self.items.draw(screen, self.items)
         self.player.draw(screen, self.player.image)
 
 
