@@ -141,17 +141,12 @@ background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, H
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
-# star Image
-# star_img_path = 'assets/graphics/heart.png'
-# star_img = LoadAssets.load_img(star_img_path, (WIDTH*0.05, WIDTH*0.05))
-# star_big_img = LoadAssets.load_img(star_img_path, (WIDTH*0.08125, WIDTH*0.08125))
-
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
 pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
 pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
 regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
@@ -244,10 +239,13 @@ class GamePlayState(GameState):
             self.spawn_timer = 0
         
         # If the item reaches the GROUND, reset its position through randomization
-        if self.item.rect.y >= GROUND_Y or CollisionManager.check_collision(self.player, self.item):
-            self.item.update_score()
+        if self.item.rect.y >= GROUND_Y:
             del self.item
             self.item = Item.spawn_item()
+        elif CollisionManager.check_collision(self.player, self.item):
+            self.item.update_score()
+            del self.item
+            self.item = Item.spawn_item()        
 
     def update(self, events):
         self.update_position()
@@ -294,6 +292,10 @@ class GamePlayState(GameState):
         self.render_stars(screen)
         (self.item).draw(screen, (self.item).image)
         (self.player).draw(screen, (self.player).image)
+        
+        # Render score
+        score_text = regular_font.render("Score: " + str(SCORE), True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))  # Adjust the position as needed
         
 class GameOverState(GameState):
     def handle_events(self, events):
