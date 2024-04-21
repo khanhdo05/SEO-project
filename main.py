@@ -217,6 +217,11 @@ class GamePlayState(GameState):
         self.item = Item.spawn_item()
         self.spawn_timer = 0
         self.spawn_interval = 2000  # Spawn interval in milliseconds
+        self.star_images = {
+            0: LoadAssets.load_img('assets/graphics/star/star_empty.png', (WIDTH * 0.05, WIDTH * 0.05)),
+            0.5: LoadAssets.load_img('assets/graphics/star/star_half.png', (WIDTH * 0.05, WIDTH * 0.05)),
+            1: LoadAssets.load_img('assets/graphics/star/star_full.png', (WIDTH * 0.05, WIDTH * 0.05))
+        }
         
     def handle_events(self, events):
         for event in events:
@@ -269,18 +274,25 @@ class GamePlayState(GameState):
             LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
             
-    # def update_items(self):
-    #     (self.spawn_item()).update_position() 
+    def render_stars(self, screen):
+        x = WIDTH - 70  # Adjust this value for positioning
+        y = 10          # Adjust this value for positioning
+        gap = 10        # Adjust this value for spacing between stars
 
-    #     # Spawn new items based on timer
-    #     # TO DO: decide whether we should have this take precedence over reset_random_position()
-    #     self.spawn_timer += 1
-    #     if self.spawn_timer >= 60:
-    #         self.spawn_item()
-    #         self.spawn_timer = 0
-
+        star_count = int(STAR)
+        decimal_part = STAR - star_count  # Get the decimal part of STAR
+        for i in range(5):
+            if i < star_count:
+                screen.blit(self.star_images[1], (x, y))
+            elif i == star_count and decimal_part >= 0.5:
+                screen.blit(self.star_images[0.5], (x, y))
+            else:
+                screen.blit(self.star_images[0], (x, y))
+            x -= self.star_images[1].get_width() + gap
+            
     def render(self, screen):
         screen.blit(background_img, (0, 0))
+        self.render_stars(screen)
         (self.item).draw(screen, (self.item).image)
         (self.player).draw(screen, (self.player).image)
         
