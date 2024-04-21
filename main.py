@@ -218,9 +218,9 @@ class GamePlayState(GameState):
         self.spawn_timer = 0
         self.spawn_interval = 2000  # Spawn interval in milliseconds
         self.star_images = {
-            0: LoadAssets.load_img('assets/graphics/star/star_empty.png', (WIDTH * 0.05, WIDTH * 0.05)),
-            0.5: LoadAssets.load_img('assets/graphics/star/star_half.png', (WIDTH * 0.05, WIDTH * 0.05)),
-            1: LoadAssets.load_img('assets/graphics/star/star_full.png', (WIDTH * 0.05, WIDTH * 0.05))
+            0: LoadAssets.load_img('assets/graphics/star/star_empty.png', (WIDTH * 0.08, WIDTH * 0.08)),
+            0.5: LoadAssets.load_img('assets/graphics/star/star_half.png', (WIDTH * 0.08, WIDTH * 0.08)),
+            1: LoadAssets.load_img('assets/graphics/star/star_full.png', (WIDTH * 0.08, WIDTH * 0.08))
         }
         
     def handle_events(self, events):
@@ -275,9 +275,8 @@ class GamePlayState(GameState):
             self.game.state = GameOverState(self.game)
             
     def render_stars(self, screen):
-        x = WIDTH - 70  # Adjust this value for positioning
-        y = 10          # Adjust this value for positioning
-        gap = 10        # Adjust this value for spacing between stars
+        x = WIDTH - (WIDTH // 11.428)  # Adjust this value for positioning
+        y = WIDTH // 80                # Adjust this value for positioning
 
         star_count = int(STAR)
         decimal_part = STAR - star_count  # Get the decimal part of STAR
@@ -288,7 +287,7 @@ class GamePlayState(GameState):
                 screen.blit(self.star_images[0.5], (x, y))
             else:
                 screen.blit(self.star_images[0], (x, y))
-            x -= self.star_images[1].get_width() + gap
+            x -= self.star_images[1].get_width() 
             
     def render(self, screen):
         screen.blit(background_img, (0, 0))
