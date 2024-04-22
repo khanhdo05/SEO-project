@@ -203,8 +203,17 @@ class MainMenuState(GameState):
 class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
+        # Times
         self.remaining_time = 3 * 60 # 3 minutes
         self.start_time = time.time()
+        # self.countdown_font = pygame.font.SysFont(None, 200)  # Choose a large font size for countdown
+        # self.countdown_color = (0, 0, 0)  # Black color for the countdown text
+        # self.countdown_sound = pygame.mixer.Sound('assets/audio/countdown_tick.wav')  # Load countdown tick sound
+        # self.countdown_sound.set_volume(0.5)  # Set volume for countdown tick sound
+        # self.countdown_sound_tick = 1  # Duration of each tick sound in seconds
+        # self.tick_time = time.time()  # Time tracker for tick sound
+        
+        # Player and Items
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
