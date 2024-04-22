@@ -39,14 +39,17 @@ class GameEntity(pygame.sprite.Sprite):
         self.rect.topleft = position
         self.speed = speed
 
-    def move_horizontally(self):
+    def move_right(self):
         self.rect.x += self.speed
+
+    def move_left(self):
+        self.rect.x -= self.speed
     
     def move_vertically_down(self):
         self.rect.y += self.speed
         
-    def draw(self, screen, img):
-        screen.blit(img, (self.rect.x, self.rect.y))
+    def draw(self, screen):
+        screen.blit(self.img, (self.rect.x, self.rect.y))
     
 
 # Player as Child Class of GameEntity
@@ -60,6 +63,8 @@ class Player(GameEntity):
             self.move_horizontally(-self.speed)
         if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
             self.move_horizontally(self.speed)
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
 
 # CollisionManager class to handle collision checks
 class CollisionManager:
@@ -75,26 +80,26 @@ class Item(GameEntity):
         self.type = type
         self.falling = True  
 
-    def update_position(self):
-        '''Update item's position'''
-        self.rect.y += self.speed
-        
-        # If the item reaches the GROUND, reset its position through randomization
-        if self.rect.y >= GROUND_Y:
-            self.reset_random_position()
+    @staticmethod
+    def spawn_item():
+        # Spawn a new item with random type, position, and speed
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS] + [ItemType.SLOWDOWN]
+        chosen_type = random.choice(item_types)
 
-    def reset_random_position(self):
-        '''Reset position through randomization'''
-        self.rect.y = 0
-        self.rect.x = random.randint(0, WIDTH - self.rect.width)
+        if chosen_type == ItemType.GOOD:
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/{random.randint(1, 4)}.png'
+        elif chosen_type == ItemType.BAD:
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/{random.randint(1, 6)}.png'
+        elif chosen_type == ItemType.BONUS:
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
+        else: 
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
 
-    def update_items(self):
-    # Update item positions and speeds
-        for item in self.items:
-            item.update_position()  # Ensure this line is present
-            item.move_vertically_down()
-            item.speed = random.randint(int(WIDTH * (1 / 200)), int(WIDTH * (3 / 400)))
-        self.items.update()
+        new_item = Item(chosen_type.name, image_path, 
+                        (random.randint(0, WIDTH - WIDTH // 12), 0), 
+                        (WIDTH // 12, WIDTH // 12), 
+                        (WIDTH * (3 / 400)))
+        return new_item
     
 
     def update_score(self):
@@ -206,59 +211,13 @@ class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
         # Initialize player and item group
+        self.remaining_time = 3 * 60
+        self.start_time = pygame.time.get_ticks()
         self.player = Player((MID_X, GROUND_Y), (WIDTH // 10, WIDTH // 10), (WIDTH // 10))
         self.items = pygame.sprite.Group()
         self.spawn_timer = 0
-        self.spawn_interval = 2000  # Spawn interval in milliseconds
-
-    def update(self, events):
-        # Update items, check collisions, and loss condition
-        self.update_items()
-        self.check_loss_condition()
-
-    def update_items(self):
-        # Update item positions
-        for item in self.items:
-            print("Hello") 
-            item.move_vertically_down()   
-
-        # Spawn new items based on timer
-        self.spawn_timer += 1
-        if self.spawn_timer >= self.spawn_interval:
-            self.spawn_item()
-            self.spawn_timer = 0
-
-            if pygame.sprite.collide_rect(item, self.player):
-                if item.item_type == ItemType.SLOWDOWN:
-                    self.player.decrease_speed()  
-        self.items.update()
-
-    def spawn_item(self):
-        # Spawn a new item with random type, position, and speed
-        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS] + [ItemType.SLOWDOWN]
-        chosen_type = random.choice(item_types)
-
-        if chosen_type == ItemType.GOOD:
-            image_path = f'assets/graphics/{chosen_type.name.lower()}/{random.randint(1, 4)}.png'
-        elif chosen_type == ItemType.BAD:
-            image_path = f'assets/graphics/{chosen_type.name.lower()}/{random.randint(1, 6)}.png'
-        elif chosen_type == ItemType.BONUS:
-            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
-        else: 
-            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
-
-        new_item = Item(chosen_type.name, image_path, 
-                        (random.randint(0, WIDTH - WIDTH // 12), 0), 
-                        (WIDTH // 12, WIDTH // 12), 
-                        (WIDTH * (3 / 400)))
-        self.items.add(new_item)
-
-    def check_loss_condition(self):
-        # Check if player lost the game
-        if STAR <= 0:
-            pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound)
-            self.game.state = GameOverState(self.game)
+        self.spawn_interval = 5000 
+        self.frame_count = 0 # Spawn interval in milliseconds
 
     def handle_events(self, events):
         # Handle player input events
@@ -271,11 +230,51 @@ class GamePlayState(GameState):
                 elif event.key == pygame.K_RIGHT:
                     self.player.move_horizontally(self.player.speed)
     
+    def update(self, events):
+        self.frame_count += 1
+        self.update_position()
+        self.check_loss_condition()
+        self.update_timer()
+
+    def update_position(self):
+        '''Update item's position'''
+        for item in self.items:
+            item.move_vertically_down()
+            # If the item reaches the GROUND, reset its position through randomization
+            if pygame.sprite.collide_rect(item, self.player):
+                if item.item_type == ItemType.SLOWDOWN:
+                    self.player.speed -= 1
+                self.items.remove(item)
+            elif item.rect.y >= GROUND_Y:
+                item.reset_random_position()
+
+        # Spawn new items based on timer
+        self.spawn_timer += 1
+        if self.spawn_timer >= self.spawn_interval:
+            num_items_to_spawn = 3
+            for _ in range(num_items_to_spawn):
+                self.items.add(Item.spawn_item())
+            self.spawn_timer = 0
+
+    def check_loss_condition(self):
+        # Check if player lost the game
+        if STAR <= 0:
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(game_over_sound)
+            self.game.state = GameOverState(self.game)
+    
     def render(self, screen):
         # Render background, items, and player
         screen.blit(background_img, (0, 0))
-        self.items.draw(screen, self.items)
-        self.player.draw(screen, self.player.image)
+        self.items.draw(screen)
+        self.player.draw(screen)  
+        self.items.update()
+
+    def update_timer(self):
+        # Update remaining time based on frame count
+        self.frame_count += 1
+        if self.frame_count % 30 == 0:  # 30 frames per second
+            self.remaining_time -= 1  # Decrease remaining time every second
 
 
 class GameOverState(GameState):
