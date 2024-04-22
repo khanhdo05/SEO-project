@@ -141,17 +141,12 @@ background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, H
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
-# star Image
-# star_img_path = 'assets/graphics/heart.png'
-# star_img = LoadAssets.load_img(star_img_path, (WIDTH*0.05, WIDTH*0.05))
-# star_big_img = LoadAssets.load_img(star_img_path, (WIDTH*0.08125, WIDTH*0.08125))
-
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
 pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
 pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
 regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
@@ -208,8 +203,17 @@ class MainMenuState(GameState):
 class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
+        # Times
         self.remaining_time = 3 * 60 # 3 minutes
         self.start_time = time.time()
+        # self.countdown_font = pygame.font.SysFont(None, 200)  # Choose a large font size for countdown
+        # self.countdown_color = (0, 0, 0)  # Black color for the countdown text
+        # self.countdown_sound = pygame.mixer.Sound('assets/audio/countdown_tick.wav')  # Load countdown tick sound
+        # self.countdown_sound.set_volume(0.5)  # Set volume for countdown tick sound
+        # self.countdown_sound_tick = 1  # Duration of each tick sound in seconds
+        # self.tick_time = time.time()  # Time tracker for tick sound
+        
+        # Player and Items
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
@@ -217,6 +221,11 @@ class GamePlayState(GameState):
         self.item = Item.spawn_item()
         self.spawn_timer = 0
         self.spawn_interval = 2000  # Spawn interval in milliseconds
+        self.star_images = {
+            0: LoadAssets.load_img('assets/graphics/star/star_empty.png', (WIDTH * 0.08, WIDTH * 0.08)),
+            0.5: LoadAssets.load_img('assets/graphics/star/star_half.png', (WIDTH * 0.08, WIDTH * 0.08)),
+            1: LoadAssets.load_img('assets/graphics/star/star_full.png', (WIDTH * 0.08, WIDTH * 0.08))
+        }
         
     def handle_events(self, events):
         for event in events:
@@ -239,10 +248,13 @@ class GamePlayState(GameState):
             self.spawn_timer = 0
         
         # If the item reaches the GROUND, reset its position through randomization
-        if self.item.rect.y >= GROUND_Y or CollisionManager.check_collision(self.player, self.item):
-            self.item.update_score()
+        if self.item.rect.y >= GROUND_Y:
             del self.item
             self.item = Item.spawn_item()
+        elif CollisionManager.check_collision(self.player, self.item):
+            self.item.update_score()
+            del self.item
+            self.item = Item.spawn_item()        
 
     def update(self, events):
         self.update_position()
@@ -269,20 +281,30 @@ class GamePlayState(GameState):
             LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
             
-    # def update_items(self):
-    #     (self.spawn_item()).update_position() 
+    def render_stars(self, screen):
+        x = WIDTH - (WIDTH // 11.428)  # Adjust this value for positioning
+        y = WIDTH // 80                # Adjust this value for positioning
 
-    #     # Spawn new items based on timer
-    #     # TO DO: decide whether we should have this take precedence over reset_random_position()
-    #     self.spawn_timer += 1
-    #     if self.spawn_timer >= 60:
-    #         self.spawn_item()
-    #         self.spawn_timer = 0
-
+        star_count = int(STAR)
+        decimal_part = STAR - star_count  # Get the decimal part of STAR
+        for i in range(5):
+            if i < star_count:
+                screen.blit(self.star_images[1], (x, y))
+            elif i == star_count and decimal_part >= 0.5:
+                screen.blit(self.star_images[0.5], (x, y))
+            else:
+                screen.blit(self.star_images[0], (x, y))
+            x -= self.star_images[1].get_width() 
+            
     def render(self, screen):
         screen.blit(background_img, (0, 0))
+        self.render_stars(screen)
         (self.item).draw(screen, (self.item).image)
         (self.player).draw(screen, (self.player).image)
+        
+        # Render score
+        score_text = regular_font.render("Score: " + str(SCORE), True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))  # Adjust the position as needed
         
 class GameOverState(GameState):
     def handle_events(self, events):
