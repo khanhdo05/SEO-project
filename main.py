@@ -152,6 +152,7 @@ game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
 lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
 earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
 boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
 LoadAssets.load_songs('assets/audio/background_music.mp3')
 pygame.mixer.music.play(-1)  # Play in an infinite loop
 
@@ -314,11 +315,22 @@ class GameOverState(GameState):
     def render(self, screen):
         screen.blit(game_over_screen, (0, 0))
         over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
-        screen.blit(over_text, (WIDTH / 2 - (WIDTH * (5 / 16)), HEIGHT / 2 - (WIDTH / 8)))
+        
+        # Calculate the width of the "GAME OVER" text
+        over_text_width, _ = game_over_font.size("GAME OVER")
+        
+        # Calculate the position to center the text horizontally
+        over_text_x = (WIDTH - over_text_width) // 2
+        over_text_y = HEIGHT // 2 - (WIDTH / 8)
+        
+        # Blit the "GAME OVER" text onto the screen
+        screen.blit(over_text, (over_text_x, over_text_y))
+        
         play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
         screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
         next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
         screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+
 
 class PauseState(GameState):
     def handle_events(self, events):
