@@ -147,6 +147,7 @@ pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH 
 pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
 pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
 regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
+regular_big_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 2)
 regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
@@ -204,14 +205,10 @@ class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
         # Times
-        self.remaining_time = 3 * 60 # 3 minutes
+        self.remaining_time = 60 # 3 minutes
         self.start_time = time.time()
-        # self.countdown_font = pygame.font.SysFont(None, 200)  # Choose a large font size for countdown
-        # self.countdown_color = (0, 0, 0)  # Black color for the countdown text
-        # self.countdown_sound = pygame.mixer.Sound('assets/audio/countdown_tick.wav')  # Load countdown tick sound
-        # self.countdown_sound.set_volume(0.5)  # Set volume for countdown tick sound
-        # self.countdown_sound_tick = 1  # Duration of each tick sound in seconds
-        # self.tick_time = time.time()  # Time tracker for tick sound
+        self.countdown_time = 10  # Countdown timer for the last 10 seconds
+        self.last_countdown_value = None
         
         # Player and Items
         self.player = Player((MID_X, GROUND_Y),          # position
@@ -280,6 +277,13 @@ class GamePlayState(GameState):
             pygame.mixer.music.stop()
             LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
+
+        # Countdown timer logic
+        if self.remaining_time <= self.countdown_time:
+            countdown_value = int(self.remaining_time) + 1  # Add 1 to ensure it goes from 10 to 0
+            if countdown_value != self.last_countdown_value:  # Only update if the value changes
+                self.last_countdown_value = countdown_value
+
             
     def render_stars(self, screen):
         x = WIDTH - (WIDTH // 11.428)  # Adjust this value for positioning
@@ -305,6 +309,11 @@ class GamePlayState(GameState):
         # Render score
         score_text = regular_font.render("Score: " + str(SCORE), True, (255, 255, 255))
         screen.blit(score_text, (10, 10))  # Adjust the position as needed
+
+        # Render countdown timer if it's greater than 0
+        if isinstance(self.last_countdown_value, int):
+            countdown_text = regular_font.render(str(self.last_countdown_value), True, (0,0,0))
+            screen.blit(countdown_text, (WIDTH // 2, HEIGHT // 2))
         
 class GameOverState(GameState):
     def handle_events(self, events):
