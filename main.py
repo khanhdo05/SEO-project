@@ -255,18 +255,17 @@ class GamePlayState(GameState):
         # Check if the remaining time is less than or equal to 0
         if self.remaining_time <= 0:
             # End the game if time runs out
-            pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
             
         # Losing Logic
         if STAR <= 0:
             pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
 
         # Countdown timer logic
         if self.remaining_time <= self.countdown_time:
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(ten_sec_count_down_sound)
             countdown_value = int(self.remaining_time) + 1  # Add 1 to ensure it goes from 10 to 0
             if countdown_value != self.last_countdown_value:  # Only update if the value changes
                 self.last_countdown_value = countdown_value
@@ -307,10 +306,14 @@ class GamePlayState(GameState):
 
         
 class GameOverState(GameState):
-    def handle_events(self, events):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def handle_events(self, events):            
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
+            LoadAssets.play_sound(game_over_sound)
                 
     def render(self, screen):
         screen.blit(game_over_screen, (0, 0))
@@ -341,10 +344,12 @@ class PauseState(GameState):
 # Game class
 class Game:
     def __init__(self):
+        self.paused = False  # Track if the game is paused
         self.running = True
         self.state = MainMenuState(self)
 
     def toggle_pause(self):
+        self.paused = not self.paused
         if isinstance(self.state, GamePlayState):
             self.state = PauseState(self)
         elif isinstance(self.state, PauseState):
@@ -362,11 +367,14 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     break
-                
-            self.state.handle_events(events)
-            self.state.update(events)
-            self.state.render(screen)
-
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                    self.toggle_pause()  # Toggle pause when 'p' key is pressed
+            
+            if not self.paused:  # Only update and render the game when not paused
+                self.state.handle_events(events)
+                self.state.update(events)
+                self.state.render(screen)
+            
             pygame.display.flip()
             clock.tick(30)
             
