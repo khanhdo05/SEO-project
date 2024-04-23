@@ -17,6 +17,8 @@ MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
+TIMER = 15 # seconds
+COUNT_DOWN_TIMER = 10 # seconds
 
 class ItemType(Enum):
     GOOD = 4
@@ -135,11 +137,6 @@ instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH,
 background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
-welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
-instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
-background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
-game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
-game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
@@ -147,12 +144,7 @@ pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH 
 pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
 pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
 regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
-regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
-game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
-pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
-pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
-pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_big_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 3)
 regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 
 # Load the music file
@@ -160,11 +152,7 @@ game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
 lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
 earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
 boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
-LoadAssets.load_songs('assets/audio/background_music.mp3')
-game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
-lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
-earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
-boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
 LoadAssets.load_songs('assets/audio/background_music.mp3')
 pygame.mixer.music.play(-1)  # Play in an infinite loop
 
@@ -204,14 +192,10 @@ class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
         # Times
-        self.remaining_time = 3 * 60 # 3 minutes
+        self.remaining_time = TIMER # 3 minutes
         self.start_time = time.time()
-        # self.countdown_font = pygame.font.SysFont(None, 200)  # Choose a large font size for countdown
-        # self.countdown_color = (0, 0, 0)  # Black color for the countdown text
-        # self.countdown_sound = pygame.mixer.Sound('assets/audio/countdown_tick.wav')  # Load countdown tick sound
-        # self.countdown_sound.set_volume(0.5)  # Set volume for countdown tick sound
-        # self.countdown_sound_tick = 1  # Duration of each tick sound in seconds
-        # self.tick_time = time.time()  # Time tracker for tick sound
+        self.countdown_time = COUNT_DOWN_TIMER  # Countdown timer for the last 10 seconds
+        self.last_countdown_value = None
         
         # Player and Items
         self.player = Player((MID_X, GROUND_Y),          # position
@@ -271,15 +255,21 @@ class GamePlayState(GameState):
         # Check if the remaining time is less than or equal to 0
         if self.remaining_time <= 0:
             # End the game if time runs out
-            pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
             
         # Losing Logic
         if STAR <= 0:
             pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
+
+        # Countdown timer logic
+        if self.remaining_time <= self.countdown_time:
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(ten_sec_count_down_sound)
+            countdown_value = int(self.remaining_time) + 1  # Add 1 to ensure it goes from 10 to 0
+            if countdown_value != self.last_countdown_value:  # Only update if the value changes
+                self.last_countdown_value = countdown_value
+
             
     def render_stars(self, screen):
         x = WIDTH - (WIDTH // 11.428)  # Adjust this value for positioning
@@ -305,21 +295,45 @@ class GamePlayState(GameState):
         # Render score
         score_text = regular_font.render("Score: " + str(SCORE), True, (255, 255, 255))
         screen.blit(score_text, (10, 10))  # Adjust the position as needed
+
+        # Render countdown timer
+        if isinstance(self.last_countdown_value, int):
+            countdown_text = regular_big_font.render(str(self.last_countdown_value), True, (0, 0, 0))
+            text_width, text_height = countdown_text.get_size()
+            text_x = (WIDTH - text_width) // 2
+            text_y = (HEIGHT - text_height) // 2
+            screen.blit(countdown_text, (text_x, text_y))
+
         
 class GameOverState(GameState):
-    def handle_events(self, events):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def handle_events(self, events):            
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
+            LoadAssets.play_sound(game_over_sound)
                 
     def render(self, screen):
         screen.blit(game_over_screen, (0, 0))
         over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
-        screen.blit(over_text, (WIDTH / 2 - (WIDTH * (5 / 16)), HEIGHT / 2 - (WIDTH / 8)))
+        
+        # Calculate the width of the "GAME OVER" text
+        over_text_width, _ = game_over_font.size("GAME OVER")
+        
+        # Calculate the position to center the text horizontally
+        over_text_x = (WIDTH - over_text_width) // 2
+        over_text_y = HEIGHT // 2 - (WIDTH / 8)
+        
+        # Blit the "GAME OVER" text onto the screen
+        screen.blit(over_text, (over_text_x, over_text_y))
+        
         play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
         screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
         next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
         screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+
 
 class PauseState(GameState):
     def handle_events(self, events):
@@ -330,10 +344,12 @@ class PauseState(GameState):
 # Game class
 class Game:
     def __init__(self):
+        self.paused = False  # Track if the game is paused
         self.running = True
         self.state = MainMenuState(self)
 
     def toggle_pause(self):
+        self.paused = not self.paused
         if isinstance(self.state, GamePlayState):
             self.state = PauseState(self)
         elif isinstance(self.state, PauseState):
@@ -351,11 +367,14 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     break
-                
-            self.state.handle_events(events)
-            self.state.update(events)
-            self.state.render(screen)
-
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                    self.toggle_pause()  # Toggle pause when 'p' key is pressed
+            
+            if not self.paused:  # Only update and render the game when not paused
+                self.state.handle_events(events)
+                self.state.update(events)
+                self.state.render(screen)
+            
             pygame.display.flip()
             clock.tick(30)
             
