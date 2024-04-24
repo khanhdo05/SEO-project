@@ -22,6 +22,7 @@ class ItemType(Enum):
     GOOD = 4
     BAD = 6
     BONUS = 1
+    SLOWDOWN = 1
     
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -87,8 +88,10 @@ class Item(GameEntity):
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
         elif chosen_type == ItemType.BAD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
-        else:  # ItemType.BONUS
-            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+        elif chosen_type == ItemType.BONUS:
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
+        else: 
+            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
 
         new_item = Item(chosen_type, image_path, 
                        (random.randint(0, WIDTH - WIDTH // 12), 0), 
@@ -106,6 +109,8 @@ class Item(GameEntity):
             STAR -= 0.5
         elif self.type == ItemType.BONUS:
             SCORE += 5
+        elif self.type == ItemType.SLOWDOWN:
+            STAR -= 1
 
 # Load assets
 class LoadAssets:
@@ -242,16 +247,21 @@ class GamePlayState(GameState):
         '''Update item's position'''
         self.item.rect.y += int(self.item.speed)
         self.spawn_timer += 1
-        
         if self.spawn_timer >= self.spawn_interval:
-            self.item = Item.spawn_item()
+            num_items_to_spawn = 3
+            for _ in range(num_items_to_spawn):
+                self.items.add(Item.spawn_item())
             self.spawn_timer = 0
         
+
         # If the item reaches the GROUND, reset its position through randomization
+
         if self.item.rect.y >= GROUND_Y:
             del self.item
             self.item = Item.spawn_item()
         elif CollisionManager.check_collision(self.player, self.item):
+            if self.item.type == ItemType.SLOWDOWN:
+                self.player.speed -= 1
             self.item.update_score()
             del self.item
             self.item = Item.spawn_item()        
