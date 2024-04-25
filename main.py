@@ -17,7 +17,7 @@ MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
-TIMER = 3*60 # seconds
+TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
 
@@ -85,16 +85,12 @@ class Item(GameEntity):
     def spawn_item():
         # Spawn a new item with random type, position, and speed
         item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1
-        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1
         chosen_type = random.choice(item_types)
 
         if chosen_type == ItemType.GOOD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
         elif chosen_type == ItemType.BAD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
-        elif chosen_type == ItemType.BONUS:
-            image_path = f'assets/graphics/{chosen_type.name}/1.png'
-        elif chosen_type == ItemType.SLOWDOWN:
         elif chosen_type == ItemType.BONUS:
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
         elif chosen_type == ItemType.SLOWDOWN:
@@ -105,20 +101,8 @@ class Item(GameEntity):
                        (WIDTH // 12, WIDTH // 12), 
                        (ITEM_SPEED))
         
-        # Increase speed for bonus item 
         if new_item.type == ItemType.BONUS:
             new_item.speed += 2 
-        elif new_item.type == ItemType.GOOD:
-            new_item.speed += 0.5
-        elif new_item.type == ItemType.BAD:
-            new_item.speed -= 0.5
-                       (ITEM_SPEED))
-        
-        # Increase speed for bonus item 
-        if new_item.type == ItemType.BONUS:
-            new_item.speed += 2 
-        elif new_item.type == ItemType.GOOD:
-            new_item.speed += 0.5
         elif new_item.type == ItemType.BAD:
             new_item.speed -= 0.5
 
@@ -231,8 +215,6 @@ class GamePlayState(GameState):
         self.spawn_timer = 0
         self.spawn_interval = 30000  # Spawn interval in milliseconds
         self.falling_items = [] #initializing list to keep track of falling items
-        self.spawn_interval = 30000  # Spawn interval in milliseconds
-        self.falling_items = [] #initializing list to keep track of falling items
         self.star_images = {
             0: LoadAssets.load_img('assets/graphics/star/star_empty.png', (WIDTH * 0.08, WIDTH * 0.08)),
             0.5: LoadAssets.load_img('assets/graphics/star/star_half.png', (WIDTH * 0.08, WIDTH * 0.08)),
@@ -253,12 +235,7 @@ class GamePlayState(GameState):
     def update_position(self):
         '''Update item's position'''
         self.spawn_timer += 1000
-        self.spawn_timer += 1000
         if self.spawn_timer >= self.spawn_interval:
-            num_items_to_spawn = 1
-            for _ in range(num_items_to_spawn):
-                new_item = Item.spawn_item()
-                self.falling_items.append(new_item)
             num_items_to_spawn = 1
             for _ in range(num_items_to_spawn):
                 new_item = Item.spawn_item()
@@ -276,7 +253,6 @@ class GamePlayState(GameState):
                 self.falling_items.remove(item)         
 
     def update(self, events):
-        global ITEM_SPEED
         global ITEM_SPEED
         self.update_position()
         
