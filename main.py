@@ -15,15 +15,17 @@ HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
-STAR = 5 # Player starts off with 5 stars
+STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
+TIMER = 3*60 # seconds
+COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
 
 class ItemType(Enum):
     GOOD = 4
     BAD = 6
     BONUS = 1
-    SLOWDOWN = 2
+    SLOWDOWN = 1
     
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -77,16 +79,22 @@ class Item(GameEntity):
     def __init__(self, type, image_path, position, scale_size, speed):
         super().__init__(image_path, position, scale_size, speed)
         self.type = type
+        self.falling = True # True or False
         
     @staticmethod 
     def spawn_item():
         # Spawn a new item with random type, position, and speed
         item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1
         chosen_type = random.choice(item_types)
+
         if chosen_type == ItemType.GOOD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
         elif chosen_type == ItemType.BAD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
+        elif chosen_type == ItemType.BONUS:
+            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+        elif chosen_type == ItemType.SLOWDOWN:
         elif chosen_type == ItemType.BONUS:
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
         elif chosen_type == ItemType.SLOWDOWN:
@@ -104,18 +112,27 @@ class Item(GameEntity):
             new_item.speed += 0.5
         elif new_item.type == ItemType.BAD:
             new_item.speed -= 0.5
+                       (ITEM_SPEED))
+        
+        # Increase speed for bonus item 
+        if new_item.type == ItemType.BONUS:
+            new_item.speed += 2 
+        elif new_item.type == ItemType.GOOD:
+            new_item.speed += 0.5
+        elif new_item.type == ItemType.BAD:
+            new_item.speed -= 0.5
 
-        return new_item   
+        return new_item  
     
     def update_score(self):
         global SCORE, STAR
         '''Update score based on item type'''
         if self.type == ItemType.GOOD:
             SCORE += 1
+        elif self.type == ItemType.BONUS:
+            SCORE += 3
         elif self.type == ItemType.BAD:
             STAR -= 0.5
-        elif self.type == ItemType.BONUS:
-            SCORE += 5
         elif self.type == ItemType.SLOWDOWN:
             STAR -= 1
 
@@ -147,11 +164,6 @@ instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH,
 background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
-welcome_img = LoadAssets.load_img('assets/graphics/welcome.png', (WIDTH, HEIGHT))
-instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
-background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
-game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
-game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
@@ -159,12 +171,7 @@ pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH 
 pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
 pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
 regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
-regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
-game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
-pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
-pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
-pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 16)
+regular_big_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 3)
 regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
 
 # Load the music file
@@ -172,11 +179,7 @@ game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
 lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
 earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
 boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
-LoadAssets.load_songs('assets/audio/background_music.mp3')
-game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
-lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
-earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
-boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
 LoadAssets.load_songs('assets/audio/background_music.mp3')
 pygame.mixer.music.play(-1)  # Play in an infinite loop
 
@@ -216,14 +219,18 @@ class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
         # Times
-        self.remaining_time = 3 * 60 # 3 minutes
+        self.remaining_time = TIMER # 3 minutes
         self.start_time = time.time()
+        self.countdown_time = COUNT_DOWN_TIMER  # Countdown timer for the last 10 seconds
+        self.last_countdown_value = None
         
         # Player and Items
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
         self.spawn_timer = 0
+        self.spawn_interval = 30000  # Spawn interval in milliseconds
+        self.falling_items = [] #initializing list to keep track of falling items
         self.spawn_interval = 30000  # Spawn interval in milliseconds
         self.falling_items = [] #initializing list to keep track of falling items
         self.star_images = {
@@ -246,7 +253,12 @@ class GamePlayState(GameState):
     def update_position(self):
         '''Update item's position'''
         self.spawn_timer += 1000
+        self.spawn_timer += 1000
         if self.spawn_timer >= self.spawn_interval:
+            num_items_to_spawn = 1
+            for _ in range(num_items_to_spawn):
+                new_item = Item.spawn_item()
+                self.falling_items.append(new_item)
             num_items_to_spawn = 1
             for _ in range(num_items_to_spawn):
                 new_item = Item.spawn_item()
@@ -261,9 +273,10 @@ class GamePlayState(GameState):
                 if item.type == ItemType.SLOWDOWN and self.player.speed > 10:
                     self.player.speed -= 5
                 item.update_score()
-                self.falling_items.remove(item)      
+                self.falling_items.remove(item)         
 
     def update(self, events):
+        global ITEM_SPEED
         global ITEM_SPEED
         self.update_position()
         
@@ -279,19 +292,25 @@ class GamePlayState(GameState):
         # Check if the remaining time is less than or equal to 0
         if self.remaining_time <= 0:
             # End the game if time runs out
-            pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
             
         # Losing Logic
         if STAR <= 0:
             pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound)
             self.game.state = GameOverState(self.game)
         
         # Increase speed by point checkpoints
         if (SCORE % 10 == 0 and SCORE > 0) and ITEM_SPEED < ITEM_SPEED + 6:
             ITEM_SPEED += 0.1
+            
+        # Countdown timer logic
+        if self.remaining_time <= self.countdown_time:
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(ten_sec_count_down_sound)
+            countdown_value = int(self.remaining_time) + 1  # Add 1 to ensure it goes from 10 to 0
+            if countdown_value != self.last_countdown_value:  # Only update if the value changes
+                self.last_countdown_value = countdown_value
+
             
     def render_stars(self, screen):
         x = WIDTH - (WIDTH // 11.428)  # Adjust this value for positioning
@@ -310,32 +329,59 @@ class GamePlayState(GameState):
             
     def render(self, screen):
         screen.blit(background_img, (0, 0))
+        
+        # Render stars
         self.render_stars(screen)
-        #(self.item).draw(screen, (self.item).image)
-        (self.player).draw(screen, (self.player).image)
-    
+        
         # Render the list of items
         for item in self.falling_items:
             item.draw(screen, item.image)
-
+        
+        # Render player  
+        (self.player).draw(screen, (self.player).image)
+        
         # Render score
         score_text = regular_font.render("Score: " + str(SCORE), True, (255, 255, 255))
         screen.blit(score_text, (10, 10))  # Adjust the position as needed
+
+        # Render countdown timer
+        if isinstance(self.last_countdown_value, int):
+            countdown_text = regular_big_font.render(str(self.last_countdown_value), True, (0, 0, 0))
+            text_width, text_height = countdown_text.get_size()
+            text_x = (WIDTH - text_width) // 2
+            text_y = (HEIGHT - text_height) // 2
+            screen.blit(countdown_text, (text_x, text_y))
+
         
 class GameOverState(GameState):
-    def handle_events(self, events):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def handle_events(self, events):            
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
+            LoadAssets.play_sound(game_over_sound)
                 
     def render(self, screen):
         screen.blit(game_over_screen, (0, 0))
         over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
-        screen.blit(over_text, (WIDTH / 2 - (WIDTH * (5 / 16)), HEIGHT / 2 - (WIDTH / 8)))
+        
+        # Calculate the width of the "GAME OVER" text
+        over_text_width, _ = game_over_font.size("GAME OVER")
+        
+        # Calculate the position to center the text horizontally
+        over_text_x = (WIDTH - over_text_width) // 2
+        over_text_y = HEIGHT // 2 - (WIDTH / 8)
+        
+        # Blit the "GAME OVER" text onto the screen
+        screen.blit(over_text, (over_text_x, over_text_y))
+        
         play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
         screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
         next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
         screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+
 
 class PauseState(GameState):
     def handle_events(self, events):
@@ -346,10 +392,12 @@ class PauseState(GameState):
 # Game class
 class Game:
     def __init__(self):
+        self.paused = False  # Track if the game is paused
         self.running = True
         self.state = MainMenuState(self)
 
     def toggle_pause(self):
+        self.paused = not self.paused
         if isinstance(self.state, GamePlayState):
             self.state = PauseState(self)
         elif isinstance(self.state, PauseState):
@@ -367,11 +415,14 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     break
-                
-            self.state.handle_events(events)
-            self.state.update(events)
-            self.state.render(screen)
-
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                    self.toggle_pause()  # Toggle pause when 'p' key is pressed
+            
+            if not self.paused:  # Only update and render the game when not paused
+                self.state.handle_events(events)
+                self.state.update(events)
+                self.state.render(screen)
+            
             pygame.display.flip()
             clock.tick(30)
             
