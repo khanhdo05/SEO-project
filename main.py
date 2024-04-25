@@ -17,7 +17,7 @@ MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
-TIMER = 15 # seconds
+TIMER = 3*60 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 
 class ItemType(Enum):
