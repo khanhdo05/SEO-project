@@ -25,7 +25,7 @@ class ItemType(Enum):
     GOOD = 4
     BAD = 6
     BONUS = 1
-    SLOWDOWN = 1
+    SLOWDOWN = 2
     
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
