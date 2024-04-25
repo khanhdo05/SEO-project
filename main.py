@@ -15,14 +15,14 @@ HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
-STAR = 5 # Player starts off with 5 hearts
+STAR = 5 # Player starts off with 5 stars
 SCORE = 0 # Total number of points player earns
 
 class ItemType(Enum):
     GOOD = 4
     BAD = 6
     BONUS = 1
-    SLOWDOWN = 1
+    SLOWDOWN = 2
     
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -81,17 +81,18 @@ class Item(GameEntity):
     @staticmethod 
     def spawn_item():
         # Spawn a new item with random type, position, and speed
-        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS]
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 6 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1
         chosen_type = random.choice(item_types)
-
+        print(item_types)
         if chosen_type == ItemType.GOOD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
         elif chosen_type == ItemType.BAD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
         elif chosen_type == ItemType.BONUS:
-            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
-        else: 
-            image_path = f'assets/graphics/{chosen_type.name.lower()}/1.png'
+            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+        elif chosen_type == ItemType.SLOWDOWN:
+            print("Slowdown Item")
+            image_path = f'assets/graphics/{chosen_type.name}/1.png'
 
         new_item = Item(chosen_type, image_path, 
                        (random.randint(0, WIDTH - WIDTH // 12), 0), 
@@ -222,10 +223,10 @@ class GamePlayState(GameState):
         self.player = Player((MID_X, GROUND_Y),          # position
                              (WIDTH // 10, WIDTH // 10), # scale_size
                              (WIDTH // 10))              # speed
-        self.items = pygame.sprite.Group()
         self.item = Item.spawn_item()
         self.spawn_timer = 0
-        self.spawn_interval = 2000  # Spawn interval in milliseconds
+        self.spawn_interval = 40000  # Spawn interval in milliseconds
+        self.falling_items = [] #initializing list to keep track of falling items
         self.star_images = {
             0: LoadAssets.load_img('assets/graphics/star/star_empty.png', (WIDTH * 0.08, WIDTH * 0.08)),
             0.5: LoadAssets.load_img('assets/graphics/star/star_half.png', (WIDTH * 0.08, WIDTH * 0.08)),
@@ -246,25 +247,34 @@ class GamePlayState(GameState):
     def update_position(self):
         '''Update item's position'''
         self.item.rect.y += int(self.item.speed)
-        self.spawn_timer += 1
+        self.spawn_timer += 1000
         if self.spawn_timer >= self.spawn_interval:
-            num_items_to_spawn = 3
+            print("khanh")
+            num_items_to_spawn = 1
             for _ in range(num_items_to_spawn):
-                self.items.add(Item.spawn_item())
+                new_item = Item.spawn_item()
+                #self.items.add(new_item)
+                self.falling_items.append(new_item)
             self.spawn_timer = 0
         
 
         # If the item reaches the GROUND, reset its position through randomization
-
-        if self.item.rect.y >= GROUND_Y:
+        for item in self.falling_items:
+            item.rect.y += int(item.speed)
+            if item.rect.y >= GROUND_Y:
+                del item
+                #self.falling_items.append(new_item)
+            elif CollisionManager.check_collision(self.player, item):
+                if item.type == ItemType.SLOWDOWN:
+                    self.player.speed -= 1
+                item.update_score()
+                self.falling_items.remove(item)
+        
+        if self.item.rect.y >= GROUND_Y or CollisionManager.check_collision(self.player, self.item):
             del self.item
             self.item = Item.spawn_item()
-        elif CollisionManager.check_collision(self.player, self.item):
-            if self.item.type == ItemType.SLOWDOWN:
-                self.player.speed -= 1
-            self.item.update_score()
-            del self.item
-            self.item = Item.spawn_item()        
+        
+               
 
     def update(self, events):
         self.update_position()
@@ -311,7 +321,10 @@ class GamePlayState(GameState):
         self.render_stars(screen)
         (self.item).draw(screen, (self.item).image)
         (self.player).draw(screen, (self.player).image)
-        
+    
+        for item in self.falling_items:
+            item.draw(screen, item.image)
+
         # Render score
         score_text = regular_font.render("Score: " + str(SCORE), True, (255, 255, 255))
         screen.blit(score_text, (10, 10))  # Adjust the position as needed
