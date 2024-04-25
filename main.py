@@ -21,11 +21,18 @@ TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
 
-class ItemType(Enum):
-    GOOD = 4
-    BAD = 6
-    BONUS = 1
-    SLOWDOWN = 2
+ItemType = {
+  "GOOD": 4,
+  "BAD": 6, 
+  "BONUS": 1, 
+  "SLOWDOWN": 1
+}
+
+# class ItemType(Enum):
+#     GOOD = 4
+#     BAD = 6
+#     BONUS = 1
+#     SLOWDOWN = 2
     
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -84,26 +91,28 @@ class Item(GameEntity):
     @staticmethod 
     def spawn_item():
         # Spawn a new item with random type, position, and speed
-        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1
+        item_types = [ItemType["GOOD"]] * 4 + [ItemType["BAD"]] * 6 + [ItemType["BONUS"]] * 1 + [ItemType["SLOWDOWN"]] * 1
         chosen_type = random.choice(item_types)
-
-        if chosen_type == ItemType.GOOD:
-            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
-        elif chosen_type == ItemType.BAD:
-            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
-        elif chosen_type == ItemType.BONUS:
-            image_path = f'assets/graphics/{chosen_type.name}/1.png'
-        elif chosen_type == ItemType.SLOWDOWN:
-            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+        #print(list(ItemType.keys()))
+        # print(chosen_type)
+        # print(item_types)
+        if chosen_type == ItemType["GOOD"]:
+            image_path = f'assets/graphics/GOOD/{random.randint(1, ItemType["GOOD"])}.png'
+        elif chosen_type == ItemType["BAD"]:
+            image_path = f'assets/graphics/BAD/{random.randint(1, ItemType["BAD"])}.png'
+        elif chosen_type == ItemType["BONUS"]:
+            image_path = f'assets/graphics/BONUS/1.png'
+        elif chosen_type == ItemType["SLOWDOWN"]:
+            image_path = f'assets/graphics/SLOWDOWN/1.png'  
 
         new_item = Item(chosen_type, image_path, 
                        (random.randint(0, WIDTH - WIDTH // 12), 0), 
                        (WIDTH // 12, WIDTH // 12), 
                        (ITEM_SPEED))
         
-        if new_item.type == ItemType.BONUS:
+        if new_item.type == ItemType["BONUS"]:
             new_item.speed += 2 
-        elif new_item.type == ItemType.BAD:
+        elif new_item.type == ItemType["BAD"]:
             new_item.speed -= 0.5
 
         return new_item  
@@ -111,13 +120,13 @@ class Item(GameEntity):
     def update_score(self):
         global SCORE, STAR
         '''Update score based on item type'''
-        if self.type == ItemType.GOOD:
+        if self.type == ItemType["GOOD"]:
             SCORE += 1
-        elif self.type == ItemType.BONUS:
+        elif self.type == ItemType["BONUS"]:
             SCORE += 3
-        elif self.type == ItemType.BAD:
+        elif self.type == ItemType["BAD"]:
             STAR -= 0.5
-        elif self.type == ItemType.SLOWDOWN:
+        elif self.type == ItemType["SLOWDOWN"]:
             STAR -= 1
 
 # Load assets
@@ -247,8 +256,8 @@ class GamePlayState(GameState):
             if item.rect.y >= GROUND_Y:
                 self.falling_items.remove(item)  
             elif CollisionManager.check_collision(self.player, item):
-                if item.type == ItemType.SLOWDOWN and self.player.speed > 10:
-                    self.player.speed -= 5
+                if item.type == ItemType["SLOWDOWN"] and self.player.speed > 10:
+                    self.player.speed -= 60
                 item.update_score()
                 self.falling_items.remove(item)         
 
