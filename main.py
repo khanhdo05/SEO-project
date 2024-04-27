@@ -375,10 +375,6 @@ class Game:
     def toggle_pause(self):
         global paused
         paused = not paused
-        if isinstance(self.state, GamePlayState):
-            self.state = PauseState(self)
-        elif isinstance(self.state, PauseState):
-            self.state = GamePlayState(self)
             
     def run(self):
         global paused
@@ -392,8 +388,9 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     break
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    self.toggle_pause()  # Toggle pause when 'p' key is pressed
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        self.toggle_pause()  # Toggle pause when 'SPACE' key is pressed
             
             if not paused:  # Only update and render the game when not paused
                 self.state.handle_events(events)
