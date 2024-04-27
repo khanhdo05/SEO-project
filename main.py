@@ -97,6 +97,7 @@ class Item(GameEntity):
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
         elif chosen_type == ItemType.SLOWDOWN:
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
+            
         new_item = Item(chosen_type, image_path, 
                        (random.randint(0, WIDTH - WIDTH // 12), 0), 
                        (WIDTH // 12, WIDTH // 12), 
@@ -230,24 +231,24 @@ class GamePlayState(GameState):
             
     def update_position(self):
         '''Update item's position'''
-        if not paused:
-            self.spawn_timer += 1000
-            if self.spawn_timer >= self.spawn_interval:
-                num_items_to_spawn = 1
-                for _ in range(num_items_to_spawn):
-                    new_item = Item.spawn_item()
-                    self.falling_items.append(new_item)
-                self.spawn_timer = 0
-            
-            for item in self.falling_items:
+        self.spawn_timer += 1000
+        if self.spawn_timer >= self.spawn_interval:
+            num_items_to_spawn = 1
+            for _ in range(num_items_to_spawn):
+                new_item = Item.spawn_item()
+                self.falling_items.append(new_item)
+            self.spawn_timer = 0
+        
+        for item in self.falling_items:
+            if not paused:
                 item.rect.y += int(item.speed)
-                if item.rect.y >= GROUND_Y:
-                    self.falling_items.remove(item)  
-                elif CollisionManager.check_collision(self.player, item):
-                    if item.type == ItemType.SLOWDOWN and self.player.speed > 10:
-                        self.player.speed -= 40
-                    item.update_score()
-                    self.falling_items.remove(item)    
+            if item.rect.y >= GROUND_Y:
+                self.falling_items.remove(item)  
+            elif CollisionManager.check_collision(self.player, item):
+                if item.type == ItemType.SLOWDOWN and self.player.speed > 40:
+                    self.player.speed -= 10
+                item.update_score()
+                self.falling_items.remove(item)    
                      
     def update(self, events):
         global ITEM_SPEED
@@ -391,7 +392,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     break
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                     self.toggle_pause()  # Toggle pause when 'p' key is pressed
             
             if not paused:  # Only update and render the game when not paused
