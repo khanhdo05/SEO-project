@@ -182,6 +182,8 @@ class GameState:
         pass
     def render(self, screen):
         pass
+    def render_paused(self, screen):
+        pass
     
 class MainMenuState(GameState):
     def __init__(self, game):
@@ -298,6 +300,8 @@ class GamePlayState(GameState):
             x -= self.star_images[1].get_width() 
             
     def render(self, screen):
+        global paused
+        
         screen.blit(background_img, (0, 0))
         
         # Render stars
@@ -321,24 +325,32 @@ class GamePlayState(GameState):
             text_x = (WIDTH - text_width) // 2
             text_y = (HEIGHT - text_height) // 2
             screen.blit(countdown_text, (text_x, text_y))
+    
+    def render_paused(self, screen):
+        # Dark low-opacity overlay
+        overlay = pygame.Surface((WIDTH, HEIGHT))
+        overlay.set_alpha(1)
+        overlay.fill((1, 0, 1))
+        screen.blit(overlay, (0, 0))
         
-        # Render pause screen
-        if paused:
-            # Dark low-opacity overlay
-            overlay = pygame.Surface((WIDTH, HEIGHT))
-            overlay.set_alpha(128)
-            overlay.fill((0, 0, 0))
-            screen.blit(overlay, (0, 0))
-            
-            # Text: Press SPACE to continue. Press ESC or Q to quit.
-            pause_text1 = regular_font.render("Press SPACE to continue.", True, (255, 255, 255))
-            pause_text2 = regular_font.render("Press ESC or Q to quit.", True, (255, 255, 255))
-            text_width, text_height = pause_text1.get_size()
-            text_x = (WIDTH - text_width) // 2
-            text_y = HEIGHT // 2 - text_height
-            screen.blit(pause_text1, (text_x, text_y))
-            text_y += text_height + 10
-            screen.blit(pause_text2, (text_x, text_y))
+        # Text: Press SPACE to continue. Press ESC or Q to quit.
+        pause_text1 = regular_font.render("Press SPACE to continue.", True, (255, 255, 255))
+        pause_text2 = regular_font.render("Press ESC or Q to quit.", True, (255, 255, 255))
+        
+        # Get the size of the text
+        text_width1, text_height1 = pause_text1.get_size()
+        text_width2, text_height2 = pause_text2.get_size()
+        
+        # Calculate the position to center the text horizontally
+        text_x1 = (WIDTH - text_width1) // 2
+        text_x2 = (WIDTH - text_width2) // 2
+        
+        # Calculate the position to center the text vertically
+        text_y1 = (HEIGHT - text_height1) // 2 - text_height1  # Place the first text above the center
+        text_y2 = (HEIGHT + text_height2) // 2             # Place the second text below the center
+        
+        screen.blit(pause_text1, (text_x1, text_y1))
+        screen.blit(pause_text2, (text_x2, text_y2))
         
 class GameOverState(GameState):
     def __init__(self, game):
@@ -402,6 +414,9 @@ class Game:
                 self.state.handle_events(events)
                 self.state.update(events)
                 self.state.render(screen)
+                       # Render pause screen
+            if paused:
+                self.state.render_paused(screen)
             
             pygame.display.flip()
             clock.tick(30)
