@@ -1,4 +1,5 @@
 # main.py
+
 # Libraries Initialization
 import pygame
 import random
@@ -6,6 +7,7 @@ import time
 from enum import Enum
 from sys import exit
 pygame.init()
+
 # Define Constants
 TITLE = "Name of our game"
 WIDTH = 800
@@ -50,6 +52,7 @@ class GameEntity(pygame.sprite.Sprite):
         
     def draw(self, screen, img):
         screen.blit(img, (self.rect.x, self.rect.y))
+        
 # Player as Child Class of GameEntity
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
@@ -111,6 +114,7 @@ class Item(GameEntity):
             STAR -= 0.5
         elif self.type == ItemType.SLOWDOWN:
             STAR -= 1
+            
 # Load assets
 class LoadAssets:
     @staticmethod
@@ -139,6 +143,7 @@ instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH,
 background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
+
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
@@ -147,6 +152,7 @@ pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf'
 regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
 regular_big_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 3)
 regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+
 # Load the music file
 game_over_sound = LoadAssets.load_sound_effects('assets/audio/lose.mp3')
 lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
@@ -155,9 +161,11 @@ boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
 ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
 LoadAssets.load_songs('assets/audio/background_music.mp3')
 pygame.mixer.music.play(-1)  # Play in an infinite loop
+
 # Set the volume (0.0 to 1.0, where 0.0 is silent and 1.0 is full volume)
 volume_level = 0.3  # Adjust this value to set the desired volume level
 pygame.mixer.music.set_volume(volume_level)
+
 # GameState classes
 class GameState:
     def __init__(self, game):
@@ -168,6 +176,7 @@ class GameState:
         pass
     def render(self, screen):
         pass
+    
 class MainMenuState(GameState):
     def __init__(self, game):
         super().__init__(game)
@@ -181,6 +190,7 @@ class MainMenuState(GameState):
                 
     def render(self, screen):
         screen.blit(welcome_img, (0, 0))
+        
 class GamePlayState(GameState):
     def __init__(self, game):
         super().__init__(game)
@@ -330,6 +340,7 @@ class GameOverState(GameState):
         screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
         next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
         screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+
 class PauseState(GameState):
     def handle_events(self, events):
         for event in events:
@@ -341,12 +352,14 @@ class Game:
         self.paused = False  # Track if the game is paused
         self.running = True
         self.state = MainMenuState(self)
+        
     def toggle_pause(self):
         self.paused = not self.paused
         if isinstance(self.state, GamePlayState):
             self.state = PauseState(self)
         elif isinstance(self.state, PauseState):
             self.state = GamePlayState(self)
+            
     def run(self):
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(TITLE)
@@ -370,6 +383,7 @@ class Game:
             clock.tick(30)
             
         pygame.quit()
+        
 # Main
 if __name__ == '__main__':
     game = Game()
