@@ -9,17 +9,21 @@ from sys import exit
 pygame.init()
 
 # Define Constants
-TITLE = "Name of our game"
+TITLE = "Build The Cake"
 WIDTH = 800
 HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
 GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
+
 STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
 TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
+
+paused = False
+
 class ItemType(Enum):
     GOOD = 4
     BAD = 6
@@ -41,6 +45,7 @@ class GameEntity(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = position
         self.speed = speed
+        
     def move_right(self):
         self.rect.x += self.speed
         
@@ -59,11 +64,12 @@ class Player(GameEntity):
         super().__init__("assets/graphics/player.png", position, scale_size, speed)
       
     def update_position(self, keys):
-        '''Handles player's movement'''
-        if keys[pygame.K_LEFT] and self.rect.x > 0: # Check left boundary
-            self.move_left()
-        if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
-            self.move_right()
+        if not paused:
+            '''Handles player's movement'''
+            if keys[pygame.K_LEFT] and self.rect.x > 0: # Check left boundary
+                self.move_left()
+            if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
+                self.move_right()
             
 # CollisionManager class to handle collision checks
 class CollisionManager:
@@ -77,7 +83,6 @@ class Item(GameEntity):
     def __init__(self, type, image_path, position, scale_size, speed):
         super().__init__(image_path, position, scale_size, speed)
         self.type = type
-        self.falling = True # True or False
         
     @staticmethod 
     def spawn_item():
@@ -98,9 +103,9 @@ class Item(GameEntity):
                        (ITEM_SPEED))
         
         if new_item.type == ItemType.BONUS:
-            new_item.speed += 0.5 
+            new_item.speed += 0.3 
         elif new_item.type == ItemType.BAD:
-            new_item.speed -= 0.5
+            new_item.speed -= 0.3
         return new_item  
     
     def update_score(self):
@@ -225,23 +230,25 @@ class GamePlayState(GameState):
             
     def update_position(self):
         '''Update item's position'''
-        self.spawn_timer += 1000
-        if self.spawn_timer >= self.spawn_interval:
-            num_items_to_spawn = 1
-            for _ in range(num_items_to_spawn):
-                new_item = Item.spawn_item()
-                self.falling_items.append(new_item)
-            self.spawn_timer = 0
-        
-        for item in self.falling_items:
-            item.rect.y += int(item.speed)
-            if item.rect.y >= GROUND_Y:
-                self.falling_items.remove(item)  
-            elif CollisionManager.check_collision(self.player, item):
-                if item.type == ItemType.SLOWDOWN and self.player.speed > 10:
-                    self.player.speed -= 60
-                item.update_score()
-                self.falling_items.remove(item)         
+        if not paused:
+            self.spawn_timer += 1000
+            if self.spawn_timer >= self.spawn_interval:
+                num_items_to_spawn = 1
+                for _ in range(num_items_to_spawn):
+                    new_item = Item.spawn_item()
+                    self.falling_items.append(new_item)
+                self.spawn_timer = 0
+            
+            for item in self.falling_items:
+                item.rect.y += int(item.speed)
+                if item.rect.y >= GROUND_Y:
+                    self.falling_items.remove(item)  
+                elif CollisionManager.check_collision(self.player, item):
+                    if item.type == ItemType.SLOWDOWN and self.player.speed > 10:
+                        self.player.speed -= 40
+                    item.update_score()
+                    self.falling_items.remove(item)    
+                     
     def update(self, events):
         global ITEM_SPEED
         self.update_position()
@@ -279,6 +286,7 @@ class GamePlayState(GameState):
         y = WIDTH // 80                # Adjust this value for positioning
         star_count = int(STAR)
         decimal_part = STAR - star_count  # Get the decimal part of STAR
+        
         for i in range(5):
             if i < star_count:
                 screen.blit(self.star_images[1], (x, y))
@@ -304,6 +312,7 @@ class GamePlayState(GameState):
         # Render score
         score_text = regular_font.render("Score: " + str(SCORE), True, (255, 255, 255))
         screen.blit(score_text, (10, 10))  # Adjust the position as needed
+        
         # Render countdown timer
         if isinstance(self.last_countdown_value, int):
             countdown_text = regular_big_font.render(str(self.last_countdown_value), True, (0, 0, 0))
@@ -346,15 +355,24 @@ class PauseState(GameState):
         for event in events:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
                 self.game.toggle_pause()
+                
+    def render(self, screen):
+        pass
+        # Render current score
+
+        # Render remaining time
+
+        # Render stars left
+        
+        
 # Game class
 class Game:
     def __init__(self):
-        self.paused = False  # Track if the game is paused
         self.running = True
         self.state = MainMenuState(self)
         
     def toggle_pause(self):
-        self.paused = not self.paused
+        paused = not paused
         if isinstance(self.state, GamePlayState):
             self.state = PauseState(self)
         elif isinstance(self.state, PauseState):
@@ -374,7 +392,7 @@ class Game:
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
                     self.toggle_pause()  # Toggle pause when 'p' key is pressed
             
-            if not self.paused:  # Only update and render the game when not paused
+            if not paused:  # Only update and render the game when not paused
                 self.state.handle_events(events)
                 self.state.update(events)
                 self.state.render(screen)
