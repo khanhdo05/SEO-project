@@ -372,6 +372,7 @@ class Game:
         self.state = MainMenuState(self)
         
     def toggle_pause(self):
+        global paused
         paused = not paused
         if isinstance(self.state, GamePlayState):
             self.state = PauseState(self)
@@ -379,6 +380,7 @@ class Game:
             self.state = GamePlayState(self)
             
     def run(self):
+        global paused
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption(TITLE)
         
