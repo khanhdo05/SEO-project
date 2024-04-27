@@ -350,21 +350,6 @@ class GameOverState(GameState):
         screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
         next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
         screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
-
-class PauseState(GameState):
-    def handle_events(self, events):
-        for event in events:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_p:
-                self.game.toggle_pause()
-                
-    def render(self, screen):
-        pass
-        # Render current score
-
-        # Render remaining time
-
-        # Render stars left
-        
         
 # Game class
 class Game:
@@ -385,10 +370,10 @@ class Game:
         while self.running:
             events = pygame.event.get()
             for event in events:
-                if event.type == pygame.QUIT:
-                    self.running = False
-                    break
-                elif event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN:
+                    if (event.type == pygame.QUIT or event.key == pygame.K_ESCAPE) or event.key == pygame.K_q:
+                        self.running = False
+                        break
                     if event.key == pygame.K_SPACE:
                         self.toggle_pause()  # Toggle pause when 'SPACE' key is pressed
             
