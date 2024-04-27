@@ -322,6 +322,24 @@ class GamePlayState(GameState):
             text_y = (HEIGHT - text_height) // 2
             screen.blit(countdown_text, (text_x, text_y))
         
+        # Render pause screen
+        if paused:
+            # Dark low-opacity overlay
+            overlay = pygame.Surface((WIDTH, HEIGHT))
+            overlay.set_alpha(128)
+            overlay.fill((0, 0, 0))
+            screen.blit(overlay, (0, 0))
+            
+            # Text: Press SPACE to continue. Press ESC or Q to quit.
+            pause_text1 = regular_font.render("Press SPACE to continue.", True, (255, 255, 255))
+            pause_text2 = regular_font.render("Press ESC or Q to quit.", True, (255, 255, 255))
+            text_width, text_height = pause_text1.get_size()
+            text_x = (WIDTH - text_width) // 2
+            text_y = HEIGHT // 2 - text_height
+            screen.blit(pause_text1, (text_x, text_y))
+            text_y += text_height + 10
+            screen.blit(pause_text2, (text_x, text_y))
+        
 class GameOverState(GameState):
     def __init__(self, game):
         super().__init__(game)
@@ -370,8 +388,11 @@ class Game:
         while self.running:
             events = pygame.event.get()
             for event in events:
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    break
                 if event.type == pygame.KEYDOWN:
-                    if (event.type == pygame.QUIT or event.key == pygame.K_ESCAPE) or event.key == pygame.K_q:
+                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
                         self.running = False
                         break
                     if event.key == pygame.K_SPACE:
