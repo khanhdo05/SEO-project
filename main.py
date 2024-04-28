@@ -21,6 +21,8 @@ SCORE = 0 # Total number of points player earns
 TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
+WINNING_SCORE = 3
+WINNING_STARS = 3
 
 paused = False
 
@@ -61,7 +63,7 @@ class GameEntity(pygame.sprite.Sprite):
 # Player as Child Class of GameEntity
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
-        super().__init__("assets/graphics/player.png", position, scale_size, speed)
+        super().__init__("assets/graphics/player2.png", position, scale_size, speed)
       
     def update_position(self, keys):
         if not paused:
@@ -149,9 +151,10 @@ instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH,
 background_img = LoadAssets.load_img('assets/graphics/background.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
-
+game_win_screen = LoadAssets.load_img('assets/graphics/game_over_screen.png', (WIDTH, HEIGHT))
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+game_win_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
 pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
 pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
@@ -269,6 +272,8 @@ class GamePlayState(GameState):
         if STAR <= 0:
             pygame.mixer.music.stop()
             self.game.state = GameOverState(self.game)
+        if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
+            self.game.state = GameOverState(self.game)
         
         # Increase speed by point checkpoints
         if (SCORE % 10 == 0 and SCORE > 0) and ITEM_SPEED < ITEM_SPEED + 6:
@@ -333,23 +338,57 @@ class GameOverState(GameState):
             LoadAssets.play_sound(game_over_sound)
                 
     def render(self, screen):
-        screen.blit(game_over_screen, (0, 0))
-        over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
+          
+        # screen.blit(game_over_screen, (0, 0))
+        # over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
         
-        # Calculate the width of the "GAME OVER" text
-        over_text_width, _ = game_over_font.size("GAME OVER")
+        # # Calculate the width of the "GAME OVER" text
+        # over_text_width, _ = game_over_font.size("GAME OVER")
         
-        # Calculate the position to center the text horizontally
-        over_text_x = (WIDTH - over_text_width) // 2
-        over_text_y = HEIGHT // 2 - (WIDTH / 8)
+        # # Calculate the position to center the text horizontally
+        # over_text_x = (WIDTH - over_text_width) // 2
+        # over_text_y = HEIGHT // 2 - (WIDTH / 8)
         
-        # Blit the "GAME OVER" text onto the screen
-        screen.blit(over_text, (over_text_x, over_text_y))
+        # # Blit the "GAME OVER" text onto the screen
+        # screen.blit(over_text, (over_text_x, over_text_y))
         
-        play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
-        screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
-        next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
-        screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+        # play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
+        # screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
+        # next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
+        # screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+        print(STAR, SCORE)
+        if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
+            print("enter winning")
+            screen.blit(game_win_screen, (0, 0))
+            win_text = game_win_font.render("YOU WIN", True, (255, 255, 0))
+
+            win_text_width, _ = game_win_font.size("YOU WIN")
+            win_text_x = (WIDTH - win_text_width) // 2
+            win_text_y = HEIGHT // 2 - (WIDTH / 8)
+            screen.blit(win_text, (win_text_x, win_text_y))
+
+            play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
+            screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
+            next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
+            screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+            
+        else:
+            print("we are in game over")   
+            screen.blit(game_over_screen, (0, 0))
+            over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
+
+            over_text_width, _ = game_over_font.size("GAME OVER")
+            over_text_x = (WIDTH - over_text_width) // 2
+            over_text_y = HEIGHT // 2 - (WIDTH / 8)
+            screen.blit(over_text, (over_text_x, over_text_y))
+
+            play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
+            screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
+            next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
+            screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+
+
+
 
 class PauseState(GameState):
     def handle_events(self, events):
