@@ -29,8 +29,8 @@ paused = False
 class ItemType(Enum):
     GOOD = 4
     BAD = 6
-    BONUS = 1
-    SLOWDOWN = 2
+    BONUS = 2
+    SLOWDOWN = 1
     SPEEDUP = 3
 
 # GameEntity as Parent Class
@@ -64,15 +64,19 @@ class GameEntity(pygame.sprite.Sprite):
 # Player as Child Class of GameEntity
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
-        super().__init__("assets/graphics/player2.png", position, scale_size, speed)
+        super().__init__("assets/graphics/player.png", position, scale_size, speed)
       
     def update_position(self, keys):
         if not paused:
             '''Handles player's movement'''
-            if keys[pygame.K_LEFT] and self.rect.x > 0: # Check left boundary
+            if keys[pygame.K_LEFT] and self.rect.left > 0: # Check left boundary
                 self.move_left()
-            if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width< WIDTH: # Check right boundary
+            if keys[pygame.K_RIGHT] and self.rect.right < WIDTH: # Check right boundary
                 self.move_right()
+            if self.rect.left < 0:
+                self.rect.x = 0
+            if self.rect.right > WIDTH:
+                self.rect.x = WIDTH - self.rect.width
             
 # CollisionManager class to handle collision checks
 class CollisionManager:
@@ -97,7 +101,7 @@ class Item(GameEntity):
         elif chosen_type == ItemType.BAD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
         elif chosen_type == ItemType.BONUS:
-            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BONUS.value)}.png'
         elif chosen_type == ItemType.SLOWDOWN:
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
         elif chosen_type == ItemType.SPEEDUP:
