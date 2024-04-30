@@ -388,7 +388,6 @@ class GameOverState(GameState):
         # screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
 
         if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
-            print("enter winning")
             screen.blit(game_win_screen, (0, 0))
             win_text = game_win_font.render("YOU WIN", True, (255, 255, 0))
 
@@ -403,7 +402,6 @@ class GameOverState(GameState):
             screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
             
         else:
-            print("we are in game over")   
             screen.blit(game_over_screen, (0, 0))
             over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
 
