@@ -21,7 +21,7 @@ SCORE = 0 # Total number of points player earns
 TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
-WINNING_SCORE = 3
+WINNING_SCORE = 50
 WINNING_STARS = 3
 
 paused = False
@@ -31,6 +31,7 @@ class ItemType(Enum):
     BAD = 6
     BONUS = 1
     SLOWDOWN = 2
+    SPEEDUP = 3
 
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -70,7 +71,7 @@ class Player(GameEntity):
             '''Handles player's movement'''
             if keys[pygame.K_LEFT] and self.rect.x > 0: # Check left boundary
                 self.move_left()
-            if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
+            if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width< WIDTH: # Check right boundary
                 self.move_right()
             
 # CollisionManager class to handle collision checks
@@ -89,7 +90,7 @@ class Item(GameEntity):
     @staticmethod 
     def spawn_item():
         # Spawn a new item with random type, position, and speed
-        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1 + [ItemType.SPEEDUP] * 1
         chosen_type = random.choice(item_types)
         if chosen_type == ItemType.GOOD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
@@ -99,16 +100,17 @@ class Item(GameEntity):
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
         elif chosen_type == ItemType.SLOWDOWN:
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
+        elif chosen_type == ItemType.SPEEDUP:
+            image_path = f'assets/graphics/{chosen_type.name}/1.png'
             
         new_item = Item(chosen_type, image_path, 
                        (random.randint(0, WIDTH - WIDTH // 12), 0), 
                        (WIDTH // 12, WIDTH // 12), 
                        (ITEM_SPEED))
         
-        if new_item.type == ItemType.BONUS:
-            new_item.speed += 0.3 
-        elif new_item.type == ItemType.BAD:
+        if new_item.type == ItemType.BAD:
             new_item.speed -= 0.3
+            
         return new_item  
     
     def update_score(self):
@@ -252,6 +254,8 @@ class GamePlayState(GameState):
             elif CollisionManager.check_collision(self.player, item):
                 if item.type == ItemType.SLOWDOWN and self.player.speed > 40:
                     self.player.speed -= 10
+                if item.type == ItemType.SPEEDUP:
+                    self.player.speed += 10
                 item.update_score()
                 self.falling_items.remove(item)    
                      
@@ -276,10 +280,6 @@ class GamePlayState(GameState):
             self.game.state = GameOverState(self.game)
         if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
             self.game.state = GameOverState(self.game)
-        
-        # Increase speed by point checkpoints
-        if (SCORE % 10 == 0 and SCORE > 0) and ITEM_SPEED < ITEM_SPEED + 6:
-            ITEM_SPEED += 0.1
             
         # Countdown timer logic
         if self.remaining_time <= self.countdown_time:
