@@ -18,7 +18,7 @@ GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 
 STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
-TIMER = 3*3 # seconds
+TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
 WINNING_SCORE = 50
@@ -32,6 +32,56 @@ class ItemType(Enum):
     BONUS = 2
     SLOWDOWN = 1
     SPEEDUP = 3
+
+# Load assets
+class LoadAssets:
+    @staticmethod
+    def load_img(image_path, scale_size):
+        return pygame.transform.scale(pygame.image.load(image_path), scale_size)
+    
+    @staticmethod
+    def load_fonts(font_path, font_size):
+        return pygame.font.Font(font_path, int(font_size))
+    
+    @staticmethod
+    def load_songs(sound_path):
+        return pygame.mixer.music.load(sound_path)
+    
+    @staticmethod
+    def load_sound_effects(sound_path):
+        return pygame.mixer.Sound(sound_path)
+        
+# Loads images
+welcome_img = LoadAssets.load_img('assets/graphics/welcome2.png', (WIDTH, HEIGHT))
+instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
+background_img = LoadAssets.load_img('assets/graphics/background2.png', (WIDTH, HEIGHT))
+game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
+game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen2.png', (WIDTH, HEIGHT))
+game_win_screen = LoadAssets.load_img('assets/graphics/game_win_screen.png', (WIDTH, HEIGHT))
+# Font
+game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+game_win_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
+pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
+pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
+pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
+regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
+regular_big_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 3)
+regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+
+# Load the music file
+game_over_sound = LoadAssets.load_sound_effects('assets/audio/over.mp3')
+game_win_sound = LoadAssets.load_sound_effects('assets/audio/win2.mp3')
+earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
+bad_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
+boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+bonus_sound = LoadAssets.load_sound_effects('assets/audio/yay-6120.mp3')
+ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
+LoadAssets.load_songs('assets/audio/background_music.mp3')
+pygame.mixer.music.play(-1)  # Play in an infinite loop
+
+# Set the volume (0.0 to 1.0, where 0.0 is silent and 1.0 is full volume)
+volume_level = 0.3  # Adjust this value to set the desired volume level
+pygame.mixer.music.set_volume(volume_level)
 
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -117,78 +167,23 @@ class Item(GameEntity):
             
         return new_item  
     
-    def update_score(self):
+    def update_score_and_play_sound_effects(self):
         global SCORE, STAR
         '''Update score based on item type'''
         if self.type == ItemType.GOOD:
+            earn_sound.play()
             SCORE += 1
         elif self.type == ItemType.BONUS:
+            bonus_sound.play()
             SCORE += 3
         elif self.type == ItemType.BAD:
+            bad_sound.play()
             STAR -= 0.5
         elif self.type == ItemType.SLOWDOWN:
+            bad_sound.play()
             STAR -= 1
-            
-# Load assets
-class LoadAssets:
-    @staticmethod
-    def load_img(image_path, scale_size):
-        return pygame.transform.scale(pygame.image.load(image_path), scale_size)
-    
-    @staticmethod
-    def load_fonts(font_path, font_size):
-        return pygame.font.Font(font_path, int(font_size))
-    
-    @staticmethod
-    def load_songs(sound_path):
-        return pygame.mixer.music.load(sound_path)
-    
-    @staticmethod
-    def load_sound_effects(sound_path):
-        return pygame.mixer.Sound(sound_path)
-    
-    @staticmethod
-    def play_sound(sound, play_once = False):
-        if play_once == True:
-            sound.play(1)  # Play the sound once
-        else:
-            sound.play(-1)
-         
-        
-# Loads images
-welcome_img = LoadAssets.load_img('assets/graphics/welcome2.png', (WIDTH, HEIGHT))
-instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
-background_img = LoadAssets.load_img('assets/graphics/background2.png', (WIDTH, HEIGHT))
-game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
-game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen2.png', (WIDTH, HEIGHT))
-game_win_screen = LoadAssets.load_img('assets/graphics/game_win_screen.png', (WIDTH, HEIGHT))
-# Font
-game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
-game_win_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
-pixel_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (11 / 80))
-pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (17 / 160))
-pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
-regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
-regular_big_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 3)
-regular_small_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH * (7 / 160))
-
-# Load the music file
-game_over_sound = LoadAssets.load_sound_effects('assets/audio/over.mp3')
-game_win_sound = LoadAssets.load_sound_effects('assets/audio/win.mp3')
-lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
-earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
-boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
-ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
-LoadAssets.load_songs('assets/audio/background_music.mp3')
-pygame.mixer.music.play(-1)  # Play in an infinite loop
-
-
-
-# SHOULD WE KEEP THE INFINITE LOOP?
-
-# Set the volume (0.0 to 1.0, where 0.0 is silent and 1.0 is full volume)
-volume_level = 0.3  # Adjust this value to set the desired volume level
-pygame.mixer.music.set_volume(volume_level)
+        elif self.type == ItemType.SPEEDUP:
+            boost_sound.play()
 
 # GameState classes
 class GameState:
@@ -227,12 +222,12 @@ class GamePlayState(GameState):
         self.last_countdown_value = None
 
         player_x = MID_X - (WIDTH // 10)  
-        player_y = GROUND_Y - (WIDTH // 10)  
+        player_y = GROUND_Y - (WIDTH // 16)  
 
         # Player and Items
         self.player = Player((player_x, player_y),  # position
-                     (WIDTH // 5, WIDTH // 5),  # scale_size
-                     (WIDTH // 10))  # speed
+                             (WIDTH // 6, WIDTH // 6),  # scale_size
+                             (WIDTH // 16))  # speed
 
         self.spawn_timer = 0
         self.spawn_interval = 30000  # Spawn interval in milliseconds
@@ -264,8 +259,6 @@ class GamePlayState(GameState):
                 self.falling_items.append(new_item)
             self.spawn_timer = 0
 
-
-        
         for item in self.falling_items:
             if not paused:
                 item.rect.y += int(item.speed)
@@ -275,8 +268,8 @@ class GamePlayState(GameState):
                 if item.type == ItemType.SLOWDOWN and self.player.speed > 40:
                     self.player.speed -= 10
                 if item.type == ItemType.SPEEDUP:
-                    self.player.speed += 10
-                item.update_score()
+                    self.player.speed += 3
+                item.update_score_and_play_sound_effects()
                 self.falling_items.remove(item)    
                      
     def update(self, events):
@@ -354,7 +347,7 @@ class GamePlayState(GameState):
         (self.player).draw(screen, (self.player).image)
         
         # Render score
-        score_text = regular_font.render("Score: " + str(SCORE), True, (255, 255, 255))
+        score_text = regular_font.render("Score: " + str(SCORE), True, (170, 51, 106))
         screen.blit(score_text, (10, 10))  # Adjust the position as needed
         
         # Render countdown timer
@@ -437,9 +430,6 @@ class GameOverState(GameState):
             screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 4 + (WIDTH / 8)))
             your_score_text = regular_small_font.render(("Your SCORE:" + ' ' + str(WINNING_SCORE)), True, (213, 103, 102))
             screen.blit(your_score_text, (WIDTH / 2 - (WIDTH / 5), HEIGHT / 4.5 + (WIDTH / 8)))
-
-
-
 
 class PauseState(GameState):
     def handle_events(self, events):
