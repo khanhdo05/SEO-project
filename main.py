@@ -21,7 +21,7 @@ SCORE = 0 # Total number of points player earns
 TIMER = 3*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
-WINNING_SCORE = 3
+WINNING_SCORE = 50
 WINNING_STARS = 3
 
 paused = False
@@ -29,8 +29,9 @@ paused = False
 class ItemType(Enum):
     GOOD = 4
     BAD = 6
-    BONUS = 1
-    SLOWDOWN = 2
+    BONUS = 2
+    SLOWDOWN = 1
+    SPEEDUP = 3
 
 # GameEntity as Parent Class
 class GameEntity(pygame.sprite.Sprite):
@@ -68,10 +69,14 @@ class Player(GameEntity):
     def update_position(self, keys):
         if not paused:
             '''Handles player's movement'''
-            if keys[pygame.K_LEFT] and self.rect.x > 0: # Check left boundary
+            if keys[pygame.K_LEFT] and self.rect.left > 0: # Check left boundary
                 self.move_left()
-            if keys[pygame.K_RIGHT] and self.rect.x + self.rect.width < WIDTH: # Check right boundary
+            if keys[pygame.K_RIGHT] and self.rect.right < WIDTH: # Check right boundary
                 self.move_right()
+            if self.rect.left < 0:
+                self.rect.x = 0
+            if self.rect.right > WIDTH:
+                self.rect.x = WIDTH - self.rect.width
             
 # CollisionManager class to handle collision checks
 class CollisionManager:
@@ -89,15 +94,17 @@ class Item(GameEntity):
     @staticmethod 
     def spawn_item():
         # Spawn a new item with random type, position, and speed
-        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1
+        item_types = [ItemType.GOOD] * 4 + [ItemType.BAD] * 4 + [ItemType.BONUS] * 1 + [ItemType.SLOWDOWN] * 1 + [ItemType.SPEEDUP] * 1
         chosen_type = random.choice(item_types)
         if chosen_type == ItemType.GOOD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.GOOD.value)}.png'
         elif chosen_type == ItemType.BAD:
             image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BAD.value)}.png'
         elif chosen_type == ItemType.BONUS:
-            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+            image_path = f'assets/graphics/{chosen_type.name}/{random.randint(1, ItemType.BONUS.value)}.png'
         elif chosen_type == ItemType.SLOWDOWN:
+            image_path = f'assets/graphics/{chosen_type.name}/1.png'
+        elif chosen_type == ItemType.SPEEDUP:
             image_path = f'assets/graphics/{chosen_type.name}/1.png'
             
         new_item = Item(chosen_type, image_path, 
@@ -105,10 +112,9 @@ class Item(GameEntity):
                        (WIDTH // 12, WIDTH // 12), 
                        (ITEM_SPEED))
         
-        if new_item.type == ItemType.BONUS:
-            new_item.speed += 0.3 
-        elif new_item.type == ItemType.BAD:
+        if new_item.type == ItemType.BAD:
             new_item.speed -= 0.3
+            
         return new_item  
     
     def update_score(self):
@@ -194,6 +200,8 @@ class GameState:
         pass
     def render(self, screen):
         pass
+    def render_paused(self, screen):
+        pass
     
 class MainMenuState(GameState):
     def __init__(self, game):
@@ -265,8 +273,9 @@ class GamePlayState(GameState):
                 self.falling_items.remove(item)  
             elif CollisionManager.check_collision(self.player, item):
                 if item.type == ItemType.SLOWDOWN and self.player.speed > 40:
-                    self.player.speed -= 60
-
+                    self.player.speed -= 10
+                if item.type == ItemType.SPEEDUP:
+                    self.player.speed += 10
                 item.update_score()
                 self.falling_items.remove(item)    
                      
@@ -330,6 +339,8 @@ class GamePlayState(GameState):
             x -= self.star_images[1].get_width() 
             
     def render(self, screen):
+        global paused
+        
         screen.blit(background_img, (0, 0))
         
         # Render stars
@@ -353,6 +364,32 @@ class GamePlayState(GameState):
             text_x = (WIDTH - text_width) // 2
             text_y = (HEIGHT - text_height) // 2
             screen.blit(countdown_text, (text_x, text_y))
+    
+    def render_paused(self, screen):
+        # Dark low-opacity overlay
+        overlay = pygame.Surface((WIDTH, HEIGHT))
+        overlay.set_alpha(1)
+        overlay.fill((1, 0, 1))
+        screen.blit(overlay, (0, 0))
+        
+        # Text: Press SPACE to continue. Press ESC or Q to quit.
+        pause_text1 = regular_font.render("Press SPACE to continue.", True, (255, 255, 255))
+        pause_text2 = regular_font.render("Press ESC or Q to quit.", True, (255, 255, 255))
+        
+        # Get the size of the text
+        text_width1, text_height1 = pause_text1.get_size()
+        text_width2, text_height2 = pause_text2.get_size()
+        
+        # Calculate the position to center the text horizontally
+        text_x1 = (WIDTH - text_width1) // 2
+        text_x2 = (WIDTH - text_width2) // 2
+        
+        # Calculate the position to center the text vertically
+        text_y1 = (HEIGHT - text_height1) // 2 - text_height1  # Place the first text above the center
+        text_y2 = (HEIGHT + text_height2) // 2             # Place the second text below the center
+        
+        screen.blit(pause_text1, (text_x1, text_y1))
+        screen.blit(pause_text2, (text_x2, text_y2))
         
 class GameOverState(GameState):
     def __init__(self, game):
@@ -365,28 +402,8 @@ class GameOverState(GameState):
             
                 
     def render(self, screen):
-          
-        # screen.blit(game_over_screen, (0, 0))
-        # over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
-        
-        # # Calculate the width of the "GAME OVER" text
-        # over_text_width, _ = game_over_font.size("GAME OVER")
-        
-        # # Calculate the position to center the text horizontally
-        # over_text_x = (WIDTH - over_text_width) // 2
-        # over_text_y = HEIGHT // 2 - (WIDTH / 8)
-        
-        # # Blit the "GAME OVER" text onto the screen
-        # screen.blit(over_text, (over_text_x, over_text_y))
-        
-        # play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
-        # screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
-        # next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
-        # screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
 
-        print(STAR, SCORE)
         if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
-            print("enter winning")
             screen.blit(game_win_screen, (0, 0))
             win_text = game_win_font.render("YOU WIN", True, (230, 62, 168))
             pygame.mixer.music.stop()
@@ -404,7 +421,6 @@ class GameOverState(GameState):
             screen.blit(your_score_text, (WIDTH / 2 - (WIDTH / 7.5), HEIGHT / 2 + (WIDTH / 16)))
             
         else:
-            print("we are in game over")   
             screen.blit(game_over_screen, (0, 0))
             over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
             pygame.mixer.music.stop()
@@ -433,12 +449,6 @@ class PauseState(GameState):
                 
     def render(self, screen):
         pass
-        # Render current score
-
-        # Render remaining time
-
-        # Render stars left
-        
         
 # Game class
 class Game:
@@ -462,7 +472,10 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.running = False
                     break
-                elif event.type == pygame.KEYDOWN:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                        self.running = False
+                        break
                     if event.key == pygame.K_SPACE:
                         self.toggle_pause()  # Toggle pause when 'SPACE' key is pressed
             
@@ -470,6 +483,9 @@ class Game:
                 self.state.handle_events(events)
                 self.state.update(events)
                 self.state.render(screen)
+                       # Render pause screen
+            if paused:
+                self.state.render_paused(screen)
             
             pygame.display.flip()
             clock.tick(30)
