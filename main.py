@@ -18,7 +18,7 @@ GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 
 STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
-TIMER = 5*3 # seconds
+TIMER = 3*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
 WINNING_SCORE = 3
@@ -142,8 +142,12 @@ class LoadAssets:
         return pygame.mixer.Sound(sound_path)
     
     @staticmethod
-    def play_sound(sound):
-        sound.play()
+    def play_sound(sound, play_once = False):
+        if play_once == True:
+            sound.play(1)  # Play the sound once
+        else:
+            sound.play(-1)
+         
         
 # Loads images
 welcome_img = LoadAssets.load_img('assets/graphics/welcome2.png', (WIDTH, HEIGHT))
@@ -160,17 +164,19 @@ pixel_small_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', 
 pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf', WIDTH * (9 / 160))
 regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
 regular_big_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 3)
-regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+regular_small_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH * (7 / 160))
 
 # Load the music file
 game_over_sound = LoadAssets.load_sound_effects('assets/audio/over.mp3')
-game_win_sound = LoadAssets.load_sound_effects('assets/audio/win2.mp3')
+game_win_sound = LoadAssets.load_sound_effects('assets/audio/win.mp3')
 lose_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
 earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
 boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
 ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
 LoadAssets.load_songs('assets/audio/background_music.mp3')
 pygame.mixer.music.play(-1)  # Play in an infinite loop
+
+
 
 # SHOULD WE KEEP THE INFINITE LOOP?
 
@@ -275,16 +281,26 @@ class GamePlayState(GameState):
         # Update start time for the next iteration
         self.start_time = time.time()
         # Check if the remaining time is less than or equal to 0
+        game_over_triggered = False
+
+        # Check for time running out
         if self.remaining_time <= 0:
-            # End the game if time runs out
-            self.game.state = GameOverState(self.game)
-            
+            if not game_over_triggered:
+                self.game.state = GameOverState(self.game)
+                game_over_triggered = True
+
         # Losing Logic
         if STAR <= 0:
-            pygame.mixer.music.stop()
-            self.game.state = GameOverState(self.game)
+            if not game_over_triggered:
+                pygame.mixer.music.stop()
+                self.game.state = GameOverState(self.game)
+                game_over_triggered = True
+
+        #Winning logic
         if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
-            self.game.state = GameOverState(self.game)
+            if not game_over_triggered:
+                self.game.state = GameOverState(self.game)
+                game_over_triggered = True
         
         # Increase speed by point checkpoints
         if (SCORE % 10 == 0 and SCORE > 0) and ITEM_SPEED < ITEM_SPEED + 6:
@@ -373,7 +389,9 @@ class GameOverState(GameState):
             print("enter winning")
             screen.blit(game_win_screen, (0, 0))
             win_text = game_win_font.render("YOU WIN", True, (230, 62, 168))
-            LoadAssets.play_sound(game_win_sound)
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(game_win_sound, play_once = True)
+
 
             win_text_width, _ = game_win_font.size("YOU WIN")
             win_text_x = (WIDTH - win_text_width) // 2
@@ -381,15 +399,16 @@ class GameOverState(GameState):
             screen.blit(win_text, (win_text_x, win_text_y))
 
             play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (213, 103, 102))
-            screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
-            next_text = regular_small_font.render("Your score:", True, (213, 103, 102))
-            screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+            screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 3.5), HEIGHT / 2 + (WIDTH / 8)))
+            your_score_text = regular_small_font.render(("Your SCORE:" + ' ' + str(WINNING_SCORE)), True, (213, 103, 102))
+            screen.blit(your_score_text, (WIDTH / 2 - (WIDTH / 7.5), HEIGHT / 2 + (WIDTH / 16)))
             
         else:
             print("we are in game over")   
             screen.blit(game_over_screen, (0, 0))
             over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
-            LoadAssets.play_sound(game_over_sound)
+            pygame.mixer.music.stop()
+            LoadAssets.play_sound(game_over_sound, play_once = True)
 
             over_text_width, _ = game_over_font.size("GAME OVER")
             over_text_x = (WIDTH - over_text_width) // 2
@@ -400,6 +419,8 @@ class GameOverState(GameState):
             screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 4 + (WIDTH / 16)))
             next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
             screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 4 + (WIDTH / 8)))
+            your_score_text = regular_small_font.render(("Your SCORE:" + ' ' + str(WINNING_SCORE)), True, (213, 103, 102))
+            screen.blit(your_score_text, (WIDTH / 2 - (WIDTH / 5), HEIGHT / 4.5 + (WIDTH / 8)))
 
 
 
