@@ -1,6 +1,6 @@
-# Catch Falling Items
+# Build The Cake
 
-Welcome to "Catch Falling Items", a fun and interactive game built with Pygame!
+Welcome to "Build The Cake", a fun and interactive game built with Pygame!
 
 ## Prerequisites
 
