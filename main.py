@@ -10,7 +10,7 @@ pygame.init()
 
 # Define Constants
 TITLE = "Build The Cake"
-WIDTH = 800
+WIDTH = 1200
 HEIGHT = WIDTH * 0.75
 MID_X = WIDTH / 2
 MID_Y = WIDTH / 2
@@ -57,7 +57,11 @@ class LoadAssets:
         
 # Loads images
 welcome_img = LoadAssets.load_img('assets/graphics/welcome2.png', (WIDTH, HEIGHT))
-instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
+instruct1_img = LoadAssets.load_img('assets/graphics/instruct1.png', (WIDTH, HEIGHT))
+instruct2_img = LoadAssets.load_img('assets/graphics/instruct2.png', (WIDTH, HEIGHT))
+instruct3_img = LoadAssets.load_img('assets/graphics/instruct3.png', (WIDTH, HEIGHT))
+instruct4_img = LoadAssets.load_img('assets/graphics/instruct4.png', (WIDTH, HEIGHT))
+instruct5_img = LoadAssets.load_img('assets/graphics/instruct5.png', (WIDTH, HEIGHT))
 background_img = LoadAssets.load_img('assets/graphics/play_screen_maybe.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen2.png', (WIDTH, HEIGHT))
@@ -212,10 +216,80 @@ class MainMenuState(GameState):
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                self.game.state = GamePlayState(self.game)
+                self.game.state = Instruction1(self.game)
                 
     def render(self, screen):
         screen.blit(welcome_img, (0, 0))
+
+class Instruction1(GameState):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                self.game.state = Instruction2(self.game)
+                
+    def render(self, screen):
+        screen.blit(instruct1_img, (0, 0))
+
+class Instruction2(GameState):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                self.game.state = Instruction3(self.game)
+                
+    def render(self, screen):
+        screen.blit(instruct2_img, (0, 0))
+
+class Instruction3(GameState):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                self.game.state = Instruction4(self.game)
+                
+    def render(self, screen):
+        screen.blit(instruct3_img, (0, 0))
+        
+class Instruction4(GameState):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                self.game.state = Instruction5(self.game)
+                
+    def render(self, screen):
+        screen.blit(instruct4_img, (0, 0))
+        
+class Instruction5(GameState):
+    def __init__(self, game):
+        super().__init__(game)
+        
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.KEYDOWN:
+                self.game.state = GamePlayState(self.game)
+                
+    def render(self, screen):
+        screen.blit(instruct5_img, (0, 0))
         
 class GamePlayState(GameState):
     def __init__(self, game):
