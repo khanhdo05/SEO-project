@@ -58,7 +58,7 @@ class LoadAssets:
 # Loads images
 welcome_img = LoadAssets.load_img('assets/graphics/welcome2.png', (WIDTH, HEIGHT))
 instruction_img = LoadAssets.load_img('assets/graphics/instruction.png', (WIDTH, HEIGHT))
-background_img = LoadAssets.load_img('assets/graphics/background2.png', (WIDTH, HEIGHT))
+background_img = LoadAssets.load_img('assets/graphics/play_screen_maybe.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen2.png', (WIDTH, HEIGHT))
 game_win_screen = LoadAssets.load_img('assets/graphics/game_win_screen.png', (WIDTH, HEIGHT))
