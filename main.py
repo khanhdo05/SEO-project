@@ -21,7 +21,7 @@ SCORE = 0 # Total number of points player earns
 TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
-WINNING_SCORE = 50
+WINNING_SCORE = 100
 WINNING_STARS = 3
 
 paused = False
@@ -50,6 +50,10 @@ class LoadAssets:
     @staticmethod
     def load_sound_effects(sound_path):
         return pygame.mixer.Sound(sound_path)
+    
+    @staticmethod
+    def play_sound(sound):
+        sound.play()
         
 # Loads images
 welcome_img = LoadAssets.load_img('assets/graphics/welcome2.png', (WIDTH, HEIGHT))
@@ -115,7 +119,7 @@ class GameEntity(pygame.sprite.Sprite):
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
         super().__init__("assets/graphics/player3.png", position, scale_size, speed)
-      
+    
     def update_position(self, keys):
         if not paused:
             '''Handles player's movement'''
@@ -232,6 +236,12 @@ class GamePlayState(GameState):
         self.spawn_timer = 0
         self.spawn_interval = 30000  # Spawn interval in milliseconds
         self.falling_items = [] #initializing list to keep track of falling items
+        self.slowdown_active = False  
+        self.boost_active = False
+        self.slowdown_duration = 5  
+        self.boost_duration = 5 
+        self.slowdown_timer = 0  
+        self.boost_timer = 0 
         self.star_images = {
             0: LoadAssets.load_img('assets/graphics/star/star_empty.png', (WIDTH * 0.08, WIDTH * 0.08)),
             0.5: LoadAssets.load_img('assets/graphics/star/star_half.png', (WIDTH * 0.08, WIDTH * 0.08)),
@@ -266,11 +276,25 @@ class GamePlayState(GameState):
                 self.falling_items.remove(item)  
             elif CollisionManager.check_collision(self.player, item):
                 if item.type == ItemType.SLOWDOWN and self.player.speed > 40:
-                    self.player.speed -= 10
+                    self.player.speed -= 35
+                    self.activate_slowdown()
                 if item.type == ItemType.SPEEDUP:
-                    self.player.speed += 3
+                    self.player.speed += 35
+                    self.activate_boost()
                 item.update_score_and_play_sound_effects()
                 self.falling_items.remove(item)    
+    
+
+    def activate_slowdown(self):
+        self.slowdown_active = True
+       # self.slowdown_timer = pygame.time.get_ticks()
+        self.slowdown_timer = time.time()
+
+    def activate_boost(self):
+        self.boost_active = True
+        #self.boost_timer = pygame.time.get_ticks()
+        self.boost_timer = time.time()
+
                      
     def update(self, events):
         global ITEM_SPEED
@@ -278,35 +302,40 @@ class GamePlayState(GameState):
         
         # Calculate elapsed time since the start
         elapsed_time = time.time() - self.start_time
+       # print(elapsed_time)
         # Decrement remaining time by elapsed time
         self.remaining_time -= elapsed_time
         # Update start time for the next iteration
         self.start_time = time.time()
         # Check if the remaining time is less than or equal to 0
-        game_over_triggered = False
-
-        # Check for time running out
         if self.remaining_time <= 0:
-            if not game_over_triggered:
-                self.game.state = GameOverState(self.game)
-                game_over_triggered = True
+            pygame.mixer.music.stop()
+            # End the game if time runs out
+            self.game.state = GameOverState(self.game)
+            LoadAssets.play_sound(game_over_sound)
+        
+        if self.slowdown_active:
+            if self.start_time - self.slowdown_timer >= self.slowdown_duration:
+                self.player.speed = (WIDTH // 16)
+                self.slowdown_active = False
+        if self.boost_active:
+            print(elapsed_time, self.boost_timer, self.remaining_time, self.start_time)
+            print(self.start_time - self.boost_timer)
+            if self.start_time - self.boost_timer >= self.boost_duration:
+                self.player.speed = (WIDTH // 16)
+                self.boost_active = False
 
         # Losing Logic
         if STAR <= 0:
-            if not game_over_triggered:
-                pygame.mixer.music.stop()
-                self.game.state = GameOverState(self.game)
-                game_over_triggered = True
-
-        #Winning logic
-        if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
-            if not game_over_triggered:
-                self.game.state = GameOverState(self.game)
-                game_over_triggered = True
+            pygame.mixer.music.stop()
+            self.game.state = GameOverState(self.game)
+            LoadAssets.play_sound(game_over_sound)
         
-        # Increase speed by point checkpoints
-        if (SCORE % 10 == 0 and SCORE > 0) and ITEM_SPEED < ITEM_SPEED + 6:
-            ITEM_SPEED += 0.1
+        # Winning Logic
+        if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
+            pygame.mixer.music.stop()
+            self.game.state = GameOverState(self.game)
+            LoadAssets.play_sound(game_win_sound)
             
         # Countdown timer logic
         if self.remaining_time <= self.countdown_time:
@@ -356,7 +385,7 @@ class GamePlayState(GameState):
             text_width, text_height = countdown_text.get_size()
             text_x = (WIDTH - text_width) // 2
             text_y = (HEIGHT - text_height) // 2
-            screen.blit(countdown_text, (text_x, text_y))
+            screen.blit(countdown_text, (text_x, text_y))       
     
     def render_paused(self, screen):
         # Dark low-opacity overlay
@@ -382,8 +411,8 @@ class GamePlayState(GameState):
         text_y2 = (HEIGHT + text_height2) // 2             # Place the second text below the center
         
         screen.blit(pause_text1, (text_x1, text_y1))
-        screen.blit(pause_text2, (text_x2, text_y2))
-        
+        screen.blit(pause_text2, (text_x2, text_y2)) 
+    
 class GameOverState(GameState):
     def __init__(self, game):
         super().__init__(game)
@@ -392,16 +421,11 @@ class GameOverState(GameState):
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
-            
-                
-    def render(self, screen):
 
+    def render(self, screen):
         if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
             screen.blit(game_win_screen, (0, 0))
             win_text = game_win_font.render("YOU WIN", True, (230, 62, 168))
-            pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_win_sound, play_once = True)
-
 
             win_text_width, _ = game_win_font.size("YOU WIN")
             win_text_x = (WIDTH - win_text_width) // 2
@@ -409,15 +433,13 @@ class GameOverState(GameState):
             screen.blit(win_text, (win_text_x, win_text_y))
 
             play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (213, 103, 102))
-            screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 3.5), HEIGHT / 2 + (WIDTH / 8)))
-            your_score_text = regular_small_font.render(("Your SCORE:" + ' ' + str(WINNING_SCORE)), True, (213, 103, 102))
-            screen.blit(your_score_text, (WIDTH / 2 - (WIDTH / 7.5), HEIGHT / 2 + (WIDTH / 16)))
+            screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
+            next_text = regular_small_font.render(f"Your score: {SCORE}", True, (213, 103, 102))
+            screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
             
         else:
             screen.blit(game_over_screen, (0, 0))
             over_text = game_over_font.render("GAME OVER", True, (251, 194, 7))
-            pygame.mixer.music.stop()
-            LoadAssets.play_sound(game_over_sound, play_once = True)
 
             over_text_width, _ = game_over_font.size("GAME OVER")
             over_text_x = (WIDTH - over_text_width) // 2
@@ -428,8 +450,6 @@ class GameOverState(GameState):
             screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 4 + (WIDTH / 16)))
             next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
             screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 4 + (WIDTH / 8)))
-            your_score_text = regular_small_font.render(("Your SCORE:" + ' ' + str(WINNING_SCORE)), True, (213, 103, 102))
-            screen.blit(your_score_text, (WIDTH / 2 - (WIDTH / 5), HEIGHT / 4.5 + (WIDTH / 8)))
 
 class PauseState(GameState):
     def handle_events(self, events):
@@ -463,7 +483,7 @@ class Game:
                     self.running = False
                     break
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_q or event.key == pygame.K_l:
                         self.running = False
                         break
                     if event.key == pygame.K_SPACE:
