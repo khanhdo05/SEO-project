@@ -21,8 +21,8 @@ SCORE = 0 # Total number of points player earns
 TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
-WINNING_SCORE = 100
-WINNING_STARS = 3
+WINNING_SCORE = 50
+WINNING_STARS = 5
 
 paused = False
 
@@ -276,10 +276,10 @@ class GamePlayState(GameState):
                 self.falling_items.remove(item)  
             elif CollisionManager.check_collision(self.player, item):
                 if item.type == ItemType.SLOWDOWN and self.player.speed > 40:
-                    self.player.speed -= 35
+                    self.player.speed -= 40
                     self.activate_slowdown()
                 if item.type == ItemType.SPEEDUP:
-                    self.player.speed += 35
+                    self.player.speed += 40
                     self.activate_boost()
                 item.update_score_and_play_sound_effects()
                 self.falling_items.remove(item)    
@@ -321,8 +321,7 @@ class GamePlayState(GameState):
             if self.start_time - self.boost_timer >= self.boost_duration:
                 self.player.speed = (WIDTH // 16)
                 self.boost_active = False
-
-            
+                
         # Losing Logic
         if STAR <= 0:
             pygame.mixer.music.stop()
