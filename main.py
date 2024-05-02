@@ -322,6 +322,7 @@ class GamePlayState(GameState):
                 self.player.speed = (WIDTH // 16)
                 self.boost_active = False
 
+            
         # Losing Logic
         if STAR <= 0:
             pygame.mixer.music.stop()
