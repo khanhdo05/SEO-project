@@ -76,8 +76,9 @@ regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf
 game_over_sound = LoadAssets.load_sound_effects('assets/audio/over.mp3')
 game_win_sound = LoadAssets.load_sound_effects('assets/audio/win2.mp3')
 earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
-bad_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
-boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+bad_sound = LoadAssets.load_sound_effects('assets/audio/trash.mp3')
+slow_item_sound = LoadAssets.load_sound_effects('assets/audio/slow_item.mp3')
+boost_sound = LoadAssets.load_sound_effects('assets/audio/soda.mp3')
 bonus_sound = LoadAssets.load_sound_effects('assets/audio/yay-6120.mp3')
 ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
 LoadAssets.load_songs('assets/audio/background_music.mp3')
@@ -184,7 +185,7 @@ class Item(GameEntity):
             bad_sound.play()
             STAR -= 0.5
         elif self.type == ItemType.SLOWDOWN:
-            bad_sound.play()
+            slow_item_sound.play()
             STAR -= 1
         elif self.type == ItemType.SPEEDUP:
             boost_sound.play()
