@@ -302,7 +302,6 @@ class GamePlayState(GameState):
         
         # Calculate elapsed time since the start
         elapsed_time = time.time() - self.start_time
-       # print(elapsed_time)
         # Decrement remaining time by elapsed time
         self.remaining_time -= elapsed_time
         # Update start time for the next iteration
@@ -319,8 +318,6 @@ class GamePlayState(GameState):
                 self.player.speed = (WIDTH // 16)
                 self.slowdown_active = False
         if self.boost_active:
-            print(elapsed_time, self.boost_timer, self.remaining_time, self.start_time)
-            print(self.start_time - self.boost_timer)
             if self.start_time - self.boost_timer >= self.boost_duration:
                 self.player.speed = (WIDTH // 16)
                 self.boost_active = False
