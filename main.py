@@ -21,7 +21,7 @@ SCORE = 0 # Total number of points player earns
 TIMER = 60*3 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
-WINNING_SCORE = 10
+WINNING_SCORE = 100
 WINNING_STARS = 3
 
 paused = False
@@ -119,7 +119,7 @@ class GameEntity(pygame.sprite.Sprite):
 class Player(GameEntity):
     def __init__(self, position, scale_size, speed):
         super().__init__("assets/graphics/player3.png", position, scale_size, speed)
-      
+    
     def update_position(self, keys):
         if not paused:
             '''Handles player's movement'''
@@ -236,6 +236,12 @@ class GamePlayState(GameState):
         self.spawn_timer = 0
         self.spawn_interval = 30000  # Spawn interval in milliseconds
         self.falling_items = [] #initializing list to keep track of falling items
+        self.slowdown_active = False  
+        self.boost_active = False
+        self.slowdown_duration = 5  
+        self.boost_duration = 5 
+        self.slowdown_timer = 0  
+        self.boost_timer = 0 
         self.star_images = {
             0: LoadAssets.load_img('assets/graphics/star/star_empty.png', (WIDTH * 0.08, WIDTH * 0.08)),
             0.5: LoadAssets.load_img('assets/graphics/star/star_half.png', (WIDTH * 0.08, WIDTH * 0.08)),
@@ -270,11 +276,25 @@ class GamePlayState(GameState):
                 self.falling_items.remove(item)  
             elif CollisionManager.check_collision(self.player, item):
                 if item.type == ItemType.SLOWDOWN and self.player.speed > 40:
-                    self.player.speed -= 10
+                    self.player.speed -= 35
+                    self.activate_slowdown()
                 if item.type == ItemType.SPEEDUP:
-                    self.player.speed += 3
+                    self.player.speed += 35
+                    self.activate_boost()
                 item.update_score_and_play_sound_effects()
                 self.falling_items.remove(item)    
+    
+
+    def activate_slowdown(self):
+        self.slowdown_active = True
+       # self.slowdown_timer = pygame.time.get_ticks()
+        self.slowdown_timer = time.time()
+
+    def activate_boost(self):
+        self.boost_active = True
+        #self.boost_timer = pygame.time.get_ticks()
+        self.boost_timer = time.time()
+
                      
     def update(self, events):
         global ITEM_SPEED
@@ -292,6 +312,16 @@ class GamePlayState(GameState):
             # End the game if time runs out
             self.game.state = GameOverState(self.game)
             LoadAssets.play_sound(game_over_sound)
+        
+        if self.slowdown_active:
+            if self.start_time - self.slowdown_timer >= self.slowdown_duration:
+                self.player.speed = (WIDTH // 16)
+                self.slowdown_active = False
+        if self.boost_active:
+            if self.start_time - self.boost_timer >= self.boost_duration:
+                self.player.speed = (WIDTH // 16)
+                self.boost_active = False
+
             
         # Losing Logic
         if STAR <= 0:
