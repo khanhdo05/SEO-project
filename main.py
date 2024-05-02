@@ -18,11 +18,11 @@ GROUND_Y = HEIGHT - (WIDTH // 10) - (WIDTH * (83/800)) # For the current graphic
 
 STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
-TIMER = 60*3 # seconds
+TIMER = 60*2 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 400)
 WINNING_SCORE = 50
-WINNING_STARS = 5
+WINNING_STARS = 3
 
 paused = False
 
@@ -76,8 +76,9 @@ regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf
 game_over_sound = LoadAssets.load_sound_effects('assets/audio/over.mp3')
 game_win_sound = LoadAssets.load_sound_effects('assets/audio/win2.mp3')
 earn_sound = LoadAssets.load_sound_effects('assets/audio/earn.mp3')
-bad_sound = LoadAssets.load_sound_effects('assets/audio/lose_p.mp3')
-boost_sound = LoadAssets.load_sound_effects('assets/audio/boost.mp3')
+bad_sound = LoadAssets.load_sound_effects('assets/audio/trash.mp3')
+slow_item_sound = LoadAssets.load_sound_effects('assets/audio/slow_item.mp3')
+boost_sound = LoadAssets.load_sound_effects('assets/audio/soda.mp3')
 bonus_sound = LoadAssets.load_sound_effects('assets/audio/yay-6120.mp3')
 ten_sec_count_down_sound = LoadAssets.load_sound_effects('assets/audio/tensec.mp3')
 LoadAssets.load_songs('assets/audio/background_music.mp3')
@@ -184,7 +185,7 @@ class Item(GameEntity):
             bad_sound.play()
             STAR -= 0.5
         elif self.type == ItemType.SLOWDOWN:
-            bad_sound.play()
+            slow_item_sound.play()
             STAR -= 1
         elif self.type == ItemType.SPEEDUP:
             boost_sound.play()
@@ -232,7 +233,7 @@ class GamePlayState(GameState):
         self.player = Player((player_x, player_y),  # position
                              (WIDTH // 6, WIDTH // 6),  # scale_size
                              (WIDTH // 16))  # speed
-
+        self.num_items_to_spawn = 1
         self.spawn_timer = 0
         self.spawn_interval = 30000  # Spawn interval in milliseconds
         self.falling_items = [] #initializing list to keep track of falling items
@@ -248,6 +249,9 @@ class GamePlayState(GameState):
             1: LoadAssets.load_img('assets/graphics/star/star_full.png', (WIDTH * 0.08, WIDTH * 0.08))
         }
         
+        self.speed_threshold = 10
+        self.spawn_threshold = 30
+        
     def handle_events(self, events):
         for event in events:
             if event.type == pygame.QUIT:
@@ -261,10 +265,13 @@ class GamePlayState(GameState):
     def update_position(self):
     
         '''Update item's position'''
+        if SCORE >= self.spawn_threshold and self.num_items_to_spawn < 4:
+            self.num_items_to_spawn += 1
+            self.spawn_threshold += 20
+                    
         self.spawn_timer += 1000
         if self.spawn_timer >= self.spawn_interval:
-            num_items_to_spawn = 1
-            for _ in range(num_items_to_spawn):
+            for _ in range(self.num_items_to_spawn):
                 new_item = Item.spawn_item()
                 self.falling_items.append(new_item)
             self.spawn_timer = 0
@@ -279,7 +286,7 @@ class GamePlayState(GameState):
                     self.player.speed -= 40
                     self.activate_slowdown()
                 if item.type == ItemType.SPEEDUP:
-                    self.player.speed += 40
+                    self.player.speed += 50
                     self.activate_boost()
                 item.update_score_and_play_sound_effects()
                 self.falling_items.remove(item)    
@@ -321,7 +328,12 @@ class GamePlayState(GameState):
             if self.start_time - self.boost_timer >= self.boost_duration:
                 self.player.speed = (WIDTH // 16)
                 self.boost_active = False
-                
+
+        # Speed up item over time logic
+        if SCORE >= self.speed_threshold:  # Check if the score exceeds the current threshold
+            ITEM_SPEED += 0.5
+            self.speed_threshold += 5
+            
         # Losing Logic
         if STAR <= 0:
             pygame.mixer.music.stop()
