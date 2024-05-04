@@ -504,6 +504,16 @@ class GameOverState(GameState):
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.game.state = GamePlayState(self.game)
+                    global SCORE, STAR, paused, TIMER, COUNT_DOWN_TIMER, ITEM_SPEED
+                    SCORE = 0
+                    STAR = 5
+                    paused = False
+                    TIMER = 60*2 # seconds
+                    COUNT_DOWN_TIMER = 10 # seconds
+                    ITEM_SPEED = WIDTH * (3 / 400)
 
     def render(self, screen):
         if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
@@ -529,7 +539,7 @@ class GameOverState(GameState):
             over_text_y = HEIGHT // 4 - (WIDTH / 8)
             screen.blit(over_text, (over_text_x, over_text_y))
 
-            play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (255, 255, 255))
+            play_again_text = regular_small_font.render("Press ENTER to Play Again", True, (255, 255, 255))
             screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 4 + (WIDTH / 16)))
             next_text = regular_small_font.render("Press 'L' to Accept the L :)", True, (255, 255, 255))
             screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 4 + (WIDTH / 8)))
