@@ -65,7 +65,7 @@ instruct5_img = LoadAssets.load_img('assets/graphics/instruct5.png', (WIDTH, HEI
 background_img = LoadAssets.load_img('assets/graphics/play_screen_maybe.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen2.png', (WIDTH, HEIGHT))
-game_win_screen = LoadAssets.load_img('assets/graphics/game_win_screen.png', (WIDTH, HEIGHT))
+game_win_screen = LoadAssets.load_img('assets/graphics/win-cake.png', (WIDTH, HEIGHT))
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 game_win_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
@@ -515,10 +515,10 @@ class GameOverState(GameState):
             win_text_y = HEIGHT // 2 - (WIDTH / 8)
             screen.blit(win_text, (win_text_x, win_text_y))
 
-            play_again_text = regular_small_font.render("Press SPACE to Play Again", True, (213, 103, 102))
-            screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 16)))
-            next_text = regular_small_font.render(f"Your score: {SCORE}", True, (213, 103, 102))
-            screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+            # play_again_text = regular_small_font.render(f"Your score: {SCORE}", True, (15,25,5))
+            # screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 - (WIDTH / 10)))
+            # next_text = regular_small_font.render(f"Your score: {SCORE}", True, (213, 103, 102))
+            # screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
             
         else:
             screen.blit(game_over_screen, (0, 0))
