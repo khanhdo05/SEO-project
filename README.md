@@ -85,6 +85,7 @@ Before playing the game, ensure that you have Python and Pygame installed on you
 
 ## How to Play
 
+- Turn on sounds for an enhanced experience.
 - Use the **left** and **right** arrow keys to move the player character.
 - Catch the ingredients to BUILD THE CAKE!
 - Avoid foul objects to prevent losing stars. Each foul object worth half a star.
