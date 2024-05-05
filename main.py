@@ -21,7 +21,7 @@ SCORE = 0 # Total number of points player earns
 TIMER = 60*2 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
 ITEM_SPEED = WIDTH * (3 / 350)
-WINNING_SCORE = 10
+WINNING_SCORE = 50
 WINNING_STARS = 3
 
 paused = False

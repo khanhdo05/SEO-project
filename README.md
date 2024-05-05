@@ -2,6 +2,8 @@
 
 Welcome to "Build The Cake", a fun and interactive game built with Pygame!
 
+![Welcome Screen](assets/graphics/welcome2.png)
+
 ## Prerequisites
 
 Before playing the game, ensure that you have Python and Pygame installed on your machine. Follow the steps below:
@@ -84,10 +86,15 @@ Before playing the game, ensure that you have Python and Pygame installed on you
 ## How to Play
 
 - Use the **left** and **right** arrow keys to move the player character.
-- Catch the coin to score points.
-- If you miss a coin, you lose 1 heart and the speed of the coin falls faster.
-- Avoid foul objects to prevent losing points.
+- Catch the ingredients to BUILD THE CAKE!
+- Avoid foul objects to prevent losing stars. Each foul object worth half a star.
+- Avoid the snail to prevent losing 1 whole star and getting slowed down.
+- Catch the soda can to enjoy a moment of speed up!
 - Pause the game by pressing the **space** key.
-- If you run out of hearts (you have 3), the game is over.
+- If you run out of stars (you have 5) or time (2 minutes), the game is over.
+- You win when you reach 5 points and have at least 3 stars left. 
+- When the game ends, click **ENTER** to play again or **ESC** / **Q** at any time to quit.
 
-Have fun playing "Catch Me If You Can"!
+![Win Screen](image-1.png)
+
+**Have fun playing "BUILD THE CAKE"!**
