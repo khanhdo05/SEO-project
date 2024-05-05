@@ -96,6 +96,6 @@ Before playing the game, ensure that you have Python and Pygame installed on you
 - You win when you reach 5 points and have at least 3 stars left. 
 - When the game ends, click **ENTER** to play again or **ESC** / **Q** at any time to quit.
 
-![Win Screen](image-1.png)
+![Win Screen](assets/graphics/image-1.png)
 
 **Have fun playing "BUILD THE CAKE"!**
