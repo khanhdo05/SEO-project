@@ -20,8 +20,8 @@ STAR = 5 # Player starts off with 5 hearts
 SCORE = 0 # Total number of points player earns
 TIMER = 60*2 # seconds
 COUNT_DOWN_TIMER = 10 # seconds
-ITEM_SPEED = WIDTH * (3 / 400)
-WINNING_SCORE = 50
+ITEM_SPEED = WIDTH * (3 / 350)
+WINNING_SCORE = 10
 WINNING_STARS = 3
 
 paused = False
@@ -65,7 +65,7 @@ instruct5_img = LoadAssets.load_img('assets/graphics/instruct5.png', (WIDTH, HEI
 background_img = LoadAssets.load_img('assets/graphics/play_screen_maybe.png', (WIDTH, HEIGHT))
 game_over_background = LoadAssets.load_img('assets/graphics/game_over_background.png', (WIDTH, HEIGHT))
 game_over_screen = LoadAssets.load_img('assets/graphics/game_over_screen2.png', (WIDTH, HEIGHT))
-game_win_screen = LoadAssets.load_img('assets/graphics/win-cake.png', (WIDTH, HEIGHT))
+game_win_screen = LoadAssets.load_img('assets/graphics/win_screen.png', (WIDTH, HEIGHT))
 # Font
 game_over_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
 game_win_font = LoadAssets.load_fonts('assets/font/Pixelify_Sans/static/PixelifySans-Bold.ttf', WIDTH / 8)
@@ -75,6 +75,7 @@ pixel_smaller_font = LoadAssets.load_fonts('assets/font/VT323/VT323-Regular.ttf'
 regular_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 20)
 regular_big_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH / 3)
 regular_small_font = LoadAssets.load_fonts('assets/font/Roboto/Roboto-Medium.ttf', WIDTH * (7 / 160))
+press_font = LoadAssets.load_fonts('assets/font/Press/press.ttf', WIDTH * (1 / 40))
 
 # Load the music file
 game_over_sound = LoadAssets.load_sound_effects('assets/audio/over.mp3')
@@ -513,22 +514,49 @@ class GameOverState(GameState):
                     paused = False
                     TIMER = 60*2 # seconds
                     COUNT_DOWN_TIMER = 10 # seconds
-                    ITEM_SPEED = WIDTH * (3 / 400)
+                    ITEM_SPEED = WIDTH * (3 / 350)
+                    
+    def render_stars(self, screen, num_stars):
+        star_big = LoadAssets.load_img('assets/graphics/star/star_full.png', (int(WIDTH * 0.3), int(WIDTH * 0.3)))
+        star_small = LoadAssets.load_img('assets/graphics/star/star_full.png', (int(WIDTH * 0.25), int(WIDTH * 0.25)))
+        center_x = WIDTH // 2
+        y = HEIGHT // 2 - 300  # Adjust the vertical position as needed
+        spacing = star_big.get_width() * 0.6  # Adjust the spacing between stars as needed
 
+        # Render the center star first
+        screen.blit(star_big, (center_x - star_big.get_width() // 2, y - star_big.get_height() // 2))
+
+        # Render stars to the left
+        for i in range(num_stars // 2):
+            screen.blit(star_small, (center_x - spacing * (i + 1) - star_small.get_width() // 2, y - star_small.get_height() // 2))
+
+        # Render stars to the right
+        for i in range(num_stars // 2):
+            screen.blit(star_small, (center_x + spacing * (i + 1) - star_small.get_width() // 2, y - star_small.get_height() // 2))
+
+            
     def render(self, screen):
         if SCORE >= WINNING_SCORE and STAR > WINNING_STARS:
             screen.blit(game_win_screen, (0, 0))
-            win_text = game_win_font.render("YOU WIN", True, (230, 62, 168))
+            win_text = game_win_font.render("YOU WIN!", True, (230, 62, 168))
 
-            win_text_width, _ = game_win_font.size("YOU WIN")
+            win_text_width, _ = game_win_font.size("YOU WIN!")
             win_text_x = (WIDTH - win_text_width) // 2
-            win_text_y = HEIGHT // 2 - (WIDTH / 8)
+            win_text_y = HEIGHT // 4 + 20 # Adjusted y position
             screen.blit(win_text, (win_text_x, win_text_y))
 
-            # play_again_text = regular_small_font.render(f"Your score: {SCORE}", True, (15,25,5))
-            # screen.blit(play_again_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 - (WIDTH / 10)))
-            # next_text = regular_small_font.render(f"Your score: {SCORE}", True, (213, 103, 102))
-            # screen.blit(next_text, (WIDTH / 2 - (WIDTH / 4), HEIGHT / 2 + (WIDTH / 8)))
+            # Render stars
+            self.render_stars(screen, int(STAR))
+
+            # Render other text
+            score_text = regular_small_font.render(f"Score: {SCORE}", True, (252, 43, 113))
+            next_text = press_font.render("Press ENTER to Play Again", True, (169, 47, 32))
+
+            text_x = (WIDTH - score_text.get_width()) // 2
+            text_y = HEIGHT // 2 - score_text.get_height()  # Adjusted y position
+
+            # screen.blit(score_text, (text_x, text_y))
+            screen.blit(next_text, (text_x - score_text.get_height() - 200, text_y + score_text.get_height())) 
             
         else:
             screen.blit(game_over_screen, (0, 0))
