@@ -57,27 +57,24 @@ Before playing the game, ensure that you have Python and Pygame installed on you
 ## Game Installation
 
 1. **Download the Repository:**
+   Either download ZIP
     - Click the green "Code" button on the GitHub repository page.
     - Select "Download ZIP."
     - Extract the downloaded ZIP file to a location of your choice.
-
-2. **Open the Command Shell:**
-    - On **Windows**, press `Win + R`, type `cmd`, and press Enter.
-    - On **Linux/Mac**, open the Terminal.
-
-3. **Navigate to the Game Directory:**
-
+   Or clone the repo
     ```bash
-    cd Downloads/falling-object-game-main
+    git clone git@github.com:khanhdo05/SEO-project.git
     ```
 
-4. **Install Pygame:**
+2. **Navigate to the Game Directory.**
+
+3. **Install Pygame:**
 
     ```bash
     pip3 install pygame
     ```
 
-5. **Run the Game:**
+4. **Run the Game:**
 
     ```bash
     python3 main.py
